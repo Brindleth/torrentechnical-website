@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contact — Torren Technical</title>
+<meta name="description" content="Get in touch with Torren Technical. Australian technical recruitment for engineering, trades, and construction.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <nav class="nav">
+      <a href="/" class="brand">
+        <span class="brand-mark">T</span>
+        <span>Torren Technical</span>
+      </a>
+      <button class="menu-toggle" aria-label="Menu">☰</button>
+      <ul class="nav-links">
+        <li><a href="/">Home</a></li>
+        <li><a href="/about.html">About</a></li>
+        <li><a href="/employers.html">Employers</a></li>
+        <li><a href="/candidates.html">Candidates</a></li>
+        <li><a href="/contact.html" class="active">Contact</a></li>
+        <li><a href="/candidates.html" class="nav-cta">Register</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="container">
+    <span class="eyebrow">Contact</span>
+    <h1>Get in touch.</h1>
+    <p class="lead" style="margin-top: 24px;">Whether you're hiring, looking, or just want to ask a question — drop us a line. We respond within 1 business day.</p>
+  </div>
+</section>
+
+<section class="section section-dark">
+  <div class="container">
+    <div class="cards-grid">
+      <div class="card">
+        <div class="card-icon">📩</div>
+        <h3>General enquiries</h3>
+        <p style="margin-bottom: 8px;"><a href="mailto:info@torrentechnical.com">info@torrentechnical.com</a></p>
+        <p style="font-size: 0.85rem;">For anything that doesn't fit the categories below. We aim to respond within 1 business day.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">💼</div>
+        <h3>Employers</h3>
+        <p style="margin-bottom: 8px;"><a href="mailto:employers@torrentechnical.com">employers@torrentechnical.com</a></p>
+        <p style="font-size: 0.85rem;">For hiring enquiries, role briefs, and partnership discussions. You can also use the <a href="/employers.html#enquire">enquiry form</a>.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">👤</div>
+        <h3>Candidates</h3>
+        <p style="margin-bottom: 8px;"><a href="mailto:candidates@torrentechnical.com">candidates@torrentechnical.com</a></p>
+        <p style="font-size: 0.85rem;">For follow-ups after registration, status checks, or data deletion requests. To register, use the <a href="/candidates.html#register">registration form</a>.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="form-wrap">
+      <span class="eyebrow">Send a message</span>
+      <h2>Or use the form.</h2>
+      <p class="lead mb-lg">Quick, no-pressure way to reach out. Tell us briefly what you're after and we'll get back to you.</p>
+
+      <form id="contactForm" action="https://n8n.torrentechnical.com/webhook/contact" method="POST">
+        <div class="form-row form-row-2">
+          <div class="form-group">
+            <label for="name">Your name *</label>
+            <input type="text" id="name" name="name" required>
+          </div>
+          <div class="form-group">
+            <label for="email">Email *</label>
+            <input type="email" id="email" name="email" required>
+          </div>
+        </div>
+
+        <div class="form-row form-row-2">
+          <div class="form-group">
+            <label for="phone">Phone</label>
+            <input type="tel" id="phone" name="phone" placeholder="+61 ">
+          </div>
+          <div class="form-group">
+            <label for="reason">I'm contacting about *</label>
+            <select id="reason" name="reason" required>
+              <option value="">Select…</option>
+              <option>I'm hiring</option>
+              <option>I'm looking for a role</option>
+              <option>General question</option>
+              <option>Partnership / business enquiry</option>
+              <option>Data / privacy request</option>
+              <option>Other</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="message">Your message *</label>
+            <textarea id="message" name="message" required placeholder="A few sentences about what you'd like to discuss."></textarea>
+          </div>
+        </div>
+
+        <div class="consent">
+          <input type="checkbox" id="consent" name="consent" value="yes" required>
+          <label for="consent">I consent to Torren Technical contacting me about this enquiry per the Privacy Act 1988.</label>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Send message →</button>
+
+        <div class="form-status" id="formStatus"></div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<section class="section section-dark">
+  <div class="container">
+    <div class="two-col">
+      <div>
+        <span class="eyebrow">Privacy &amp; data</span>
+        <h2>Your information, your control.</h2>
+        <p>Torren Technical operates in line with the Privacy Act 1988 and the Australian Privacy Principles. We collect only what's necessary to provide our service, and only with your consent.</p>
+        <p>To request access, correction, or deletion of your data, email <a href="mailto:info@torrentechnical.com">info@torrentechnical.com</a> with the relevant request and we'll action it within 5 business days.</p>
+      </div>
+      <div>
+        <ul class="feature-list">
+          <li><strong>Consent first.</strong> Nothing collected without explicit opt-in.</li>
+          <li><strong>No CV blasting.</strong> Your details never go to an employer without your per-role consent.</li>
+          <li><strong>Data deletion on request.</strong> 5 business day turnaround.</li>
+          <li><strong>Spam Act 2003 compliant.</strong> Every email we send includes a working unsubscribe.</li>
+          <li><strong>No candidate fees.</strong> Free to register, free to be matched, free to be placed.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-col">
+        <a href="/" class="brand" style="margin-bottom: 16px;">
+          <span class="brand-mark">T</span>
+          <span>Torren Technical</span>
+        </a>
+        <p style="font-size: 0.9rem; max-width: 360px;">Specialist Australian recruitment for engineering, industrial trades, and construction. Built and run by an engineer.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Services</h4>
+        <ul>
+          <li><a href="/employers.html">For Employers</a></li>
+          <li><a href="/candidates.html">For Candidates</a></li>
+          <li><a href="/about.html">About</a></li>
+          <li><a href="/contact.html">Contact</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Contact</h4>
+        <ul>
+          <li><a href="mailto:info@torrentechnical.com">info@torrentechnical.com</a></li>
+          <li><a href="mailto:employers@torrentechnical.com">employers@torrentechnical.com</a></li>
+          <li><a href="mailto:candidates@torrentechnical.com">candidates@torrentechnical.com</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 Torren Technical. ABN coming soon.</span>
+      <span>Privacy Act 1988 · Spam Act 2003 compliant</span>
+    </div>
+  </div>
+</footer>
+
+<script src="/assets/js/main.js"></script>
+</body>
+</html>
