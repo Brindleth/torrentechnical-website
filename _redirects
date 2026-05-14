@@ -1,0 +1,12 @@
+# Force HTTPS and trailing slash normalisation
+/index.html / 301
+/about.html/ /about.html 301
+/employers.html/ /employers.html 301
+/candidates.html/ /candidates.html 301
+/contact.html/ /contact.html 301
+
+# Catch old/legacy URLs if any appear later
+/home / 301
+/services /employers.html 301
+/register /candidates.html#register 301
+/hire /employers.html#enquire 301
