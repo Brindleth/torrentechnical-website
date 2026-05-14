@@ -116,14 +116,185 @@
 
 <section class="section section-dark" id="register">
   <div class="container">
-    <div class="form-wrap text-center">
+    <div class="form-wrap">
       <span class="eyebrow">Register</span>
-      <h2>Ready to register?</h2>
-      <p class="lead mb-lg" style="margin-left: auto; margin-right: auto;">The registration form takes 5–10 minutes. CV upload optional. You'll receive a confirmation email and Matt will personally review your details within 5 business days.</p>
+      <h2>Tell us about yourself.</h2>
+      <p class="lead mb-lg">Takes 5–10 minutes. All fields marked * are required. Matt personally reviews every submission within 5 business days.</p>
 
-      <a href="https://n8n.torrentechnical.com/form/9374ba68-e4a6-4eb9-9a0b-5e0686b1bc3c" target="_blank" rel="noopener" class="btn btn-primary" style="font-size: 1.1rem; padding: 18px 36px;">Open the registration form →</a>
+      <form id="candidateForm" action="https://n8n.torrentechnical.com/webhook/candidate-registration" method="POST">
 
-      <p style="margin-top: 32px; font-size: 0.85rem; color: var(--text-muted);">The form opens in a new tab. All submissions are processed under Privacy Act 1988 with explicit consent. Questions? <a href="/contact.html">Get in touch first</a>.</p>
+        <div class="form-row form-row-2">
+          <div class="form-group">
+            <label for="first_name">First name *</label>
+            <input type="text" id="first_name" name="first_name" required>
+          </div>
+          <div class="form-group">
+            <label for="last_name">Last name *</label>
+            <input type="text" id="last_name" name="last_name" required>
+          </div>
+        </div>
+
+        <div class="form-row form-row-2">
+          <div class="form-group">
+            <label for="email">Email *</label>
+            <input type="email" id="email" name="email" required>
+          </div>
+          <div class="form-group">
+            <label for="phone">Phone (incl. country code) *</label>
+            <input type="tel" id="phone" name="phone" required placeholder="+61 4XX XXX XXX" value="+61 ">
+          </div>
+        </div>
+
+        <div class="form-row form-row-2">
+          <div class="form-group">
+            <label for="location">Current location *</label>
+            <input type="text" id="location" name="location" required placeholder="e.g. Perth WA, willing to relocate">
+          </div>
+          <div class="form-group">
+            <label for="work_auth">Australian work authorisation *</label>
+            <select id="work_auth" name="work_auth" required>
+              <option value="">Select…</option>
+              <option>Citizen</option>
+              <option>Permanent Resident</option>
+              <option>Working Holiday</option>
+              <option>482 / Sponsored</option>
+              <option>Student Visa</option>
+              <option>Other / Need sponsorship</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row form-row-2">
+          <div class="form-group">
+            <label for="years_experience">Years of experience *</label>
+            <select id="years_experience" name="years_experience" required>
+              <option value="">Select…</option>
+              <option>Less than 1 year</option>
+              <option>1 year</option>
+              <option>2 years</option>
+              <option>3-5 years</option>
+              <option>5-10 years</option>
+              <option>10+ years</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="discipline">Primary discipline *</label>
+            <select id="discipline" name="discipline" required onchange="document.getElementById('disciplineOtherWrap').style.display = this.value === 'Other' ? 'flex' : 'none';">
+              <option value="">Select…</option>
+              <optgroup label="Engineering">
+                <option>Test Engineering (Electronic)</option>
+                <option>Automation / PLC</option>
+                <option>Embedded / Firmware</option>
+                <option>Controls / Instrumentation</option>
+                <option>Mechanical / Mechatronics Engineering</option>
+                <option>Civil / Structural Engineering</option>
+                <option>Defence-cleared (NV1/NV2/PV)</option>
+              </optgroup>
+              <optgroup label="Industrial Trades">
+                <option>Industrial Electrical / Maintenance</option>
+                <option>Field Service Engineering</option>
+                <option>Electrical Trade (Licensed Electrician)</option>
+                <option>Plumbing / Gas Fitting</option>
+                <option>HVAC / Refrigeration</option>
+                <option>Welding / Boilermaking / Fabrication</option>
+                <option>Heavy Diesel Mechanic</option>
+              </optgroup>
+              <optgroup label="Construction">
+                <option>Project Management (Construction)</option>
+                <option>Site Supervision / Foreman</option>
+                <option>Construction Trades (Carpentry/Concreting/Formwork)</option>
+                <option>Scaffolding / Rigging</option>
+                <option>Painting / Plastering / Tiling</option>
+                <option>Plant Operator (Crane/Excavator/Forklift)</option>
+              </optgroup>
+              <optgroup label="Other">
+                <option>Property Maintenance / Handyperson</option>
+                <option>Labouring / Trade Assistant</option>
+                <option>Cleaning / Grounds Maintenance</option>
+                <option>Other</option>
+              </optgroup>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row" id="disciplineOtherWrap" style="display:none;">
+          <div class="form-group">
+            <label for="discipline_other">If "Other", please specify</label>
+            <input type="text" id="discipline_other" name="discipline_other" placeholder="Your discipline">
+          </div>
+        </div>
+
+        <div class="form-row form-row-2">
+          <div class="form-group">
+            <label for="employed_status">Currently employed? *</label>
+            <select id="employed_status" name="employed_status" required>
+              <option value="">Select…</option>
+              <option>Yes, looking passively</option>
+              <option>Yes, actively looking</option>
+              <option>No, available immediately</option>
+              <option>No, available with notice</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="notice_period_weeks">Notice period (weeks) *</label>
+            <input type="number" id="notice_period_weeks" name="notice_period_weeks" required min="0" max="52" placeholder="0">
+          </div>
+        </div>
+
+        <div class="form-row form-row-2">
+          <div class="form-group">
+            <label for="salary_expectation">Salary expectation (AUD) *</label>
+            <input type="text" id="salary_expectation" name="salary_expectation" required placeholder="e.g. $130k base + super, or $850/day">
+          </div>
+          <div class="form-group">
+            <label for="linkedin_url">LinkedIn URL</label>
+            <input type="url" id="linkedin_url" name="linkedin_url" placeholder="https://linkedin.com/in/...">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Work preferences * (select all that apply)</label>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-top: 6px;">
+              <label style="display:flex; gap:8px; align-items:center; font-weight:400; font-size:0.9rem;"><input type="checkbox" name="work_preferences" value="Permanent"> Permanent</label>
+              <label style="display:flex; gap:8px; align-items:center; font-weight:400; font-size:0.9rem;"><input type="checkbox" name="work_preferences" value="Contract"> Contract</label>
+              <label style="display:flex; gap:8px; align-items:center; font-weight:400; font-size:0.9rem;"><input type="checkbox" name="work_preferences" value="Onsite"> Onsite</label>
+              <label style="display:flex; gap:8px; align-items:center; font-weight:400; font-size:0.9rem;"><input type="checkbox" name="work_preferences" value="Hybrid"> Hybrid</label>
+              <label style="display:flex; gap:8px; align-items:center; font-weight:400; font-size:0.9rem;"><input type="checkbox" name="work_preferences" value="Remote"> Remote</label>
+              <label style="display:flex; gap:8px; align-items:center; font-weight:400; font-size:0.9rem;"><input type="checkbox" name="work_preferences" value="FIFO acceptable"> FIFO</label>
+              <label style="display:flex; gap:8px; align-items:center; font-weight:400; font-size:0.9rem;"><input type="checkbox" name="work_preferences" value="Willing to relocate"> Relocate</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="summary_self">Why are you exploring new roles? *</label>
+            <textarea id="summary_self" name="summary_self" required placeholder="1-3 sentences on your current situation and what you're looking for."></textarea>
+          </div>
+        </div>
+
+        <div class="form-row form-row-2">
+          <div class="form-group">
+            <label for="cv_file">CV upload (PDF, DOCX, max 5MB)</label>
+            <input type="file" id="cv_file" name="cv_file" accept=".pdf,.doc,.docx,.txt,.rtf,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+            <small style="color: var(--text-muted); font-size: 0.8rem; margin-top: 4px;">Optional — use the text field below if you prefer.</small>
+          </div>
+          <div class="form-group">
+            <label for="cv_text_pasted">Or paste CV text</label>
+            <textarea id="cv_text_pasted" name="cv_text_pasted" placeholder="Paste your CV here if you don't want to upload a file." style="min-height: 80px;"></textarea>
+          </div>
+        </div>
+
+        <div class="consent">
+          <input type="checkbox" id="consent" name="consent" value="yes" required>
+          <label for="consent">I consent to Torren Technical storing and processing my information per the Privacy Act 1988 and the Australian Privacy Principles, for the purpose of recruitment matching. I understand I can request deletion at any time by emailing <a href="mailto:candidates@torrentechnical.com">candidates@torrentechnical.com</a>.</label>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Submit registration →</button>
+
+        <div class="form-status" id="formStatus"></div>
+      </form>
     </div>
   </div>
 </section>
@@ -140,7 +311,7 @@
       </div>
       <div class="card">
         <h3>What disciplines do you cover?</h3>
-        <p>Electronic test, automation/PLC, embedded, industrial electrical, mechanical fitting, instrumentation, HVAC, welding, construction trades, project management, property maintenance, plant ops, and adjacent roles. If your discipline isn't listed, register anyway — we'll tell you honestly.</p>
+        <p>Engineering, industrial trades, construction, and property maintenance. If your discipline isn't in the dropdown, select "Other" and tell us.</p>
       </div>
       <div class="card">
         <h3>Do I need to be in Australia?</h3>
