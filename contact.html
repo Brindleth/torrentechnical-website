@@ -72,7 +72,14 @@
       <h2>Or use the form.</h2>
       <p class="lead mb-lg">Quick, no-pressure way to reach out. Tell us briefly what you're after and we'll get back to you.</p>
 
-      <form id="contactForm" action="https://n8n.torrentechnical.com/webhook/contact" method="POST">
+      <div class="form-success" id="contactSuccess">
+        <div class="form-success-icon">✓</div>
+        <h3>Message received.</h3>
+        <p>Thanks for getting in touch. Our team will respond within 1 business day.</p>
+        <p style="font-size: 0.9rem; color: var(--text-muted);">A copy of your message has been logged. Need to reach us urgently? Email <a href="mailto:info@torrentechnical.com">info@torrentechnical.com</a>.</p>
+      </div>
+
+      <form id="contactForm" action="https://n8n.torrentechnical.com/webhook/contact" method="POST" data-success-id="contactSuccess">
         <div class="form-row form-row-2">
           <div class="form-group">
             <label for="name">Your name *</label>
