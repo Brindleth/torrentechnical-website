@@ -534,3 +534,30 @@ p { margin-bottom: 1rem; color: var(--text-muted); }
 .mb-lg { margin-bottom: 32px; }
 .muted { color: var(--text-muted); }
 .accent { color: var(--accent-hover); }
+
+/* Price tag inside cards — auto-adapts to light or dark section */
+.price-tag {
+  color: var(--text);
+  font-weight: 700;
+  font-size: 1.15rem;
+  margin-bottom: 0.75rem;
+  font-family: 'Inter Tight', sans-serif;
+}
+.section-dark .price-tag { color: var(--accent); }
+
+/* Card contact line (email + small note pattern) */
+.card-contact {
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+.card-note { font-size: 0.85rem; }
+.section-dark .card-note { color: rgba(255, 255, 255, 0.65); }
+
+/* Disclaimer text under sections */
+.disclaimer {
+  margin-top: 32px;
+  font-size: 0.9rem;
+  text-align: center;
+  color: var(--text-muted);
+}
+.section-dark .disclaimer { color: rgba(255, 255, 255, 0.6); }
