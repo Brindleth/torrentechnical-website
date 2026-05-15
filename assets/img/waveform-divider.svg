@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 40" preserveAspectRatio="none" fill="none" stroke="#C9A961" stroke-width="1.2" stroke-linecap="round">
+  <!-- Subtle baseline grid ticks -->
+  <line x1="0" y1="20" x2="1200" y2="20" stroke-width="0.4" stroke-dasharray="2 6" opacity="0.5"/>
+
+  <!-- Square wave segment -->
+  <path d="M 0 20 L 60 20 L 60 8 L 120 8 L 120 32 L 180 32 L 180 20 L 220 20"/>
+
+  <!-- Sine-ish segment -->
+  <path d="M 220 20 Q 250 4, 280 20 T 340 20 T 400 20 T 460 20"/>
+
+  <!-- Pulse train -->
+  <path d="M 460 20 L 500 20 L 500 10 L 520 10 L 520 20 L 560 20 L 560 10 L 580 10 L 580 20 L 620 20"/>
+
+  <!-- Sawtooth segment -->
+  <path d="M 620 20 L 660 20 L 660 6 L 680 30 L 680 6 L 700 30 L 700 6 L 720 30 L 720 20 L 760 20"/>
+
+  <!-- Damped oscillation -->
+  <path d="M 760 20 Q 780 10, 800 20 T 840 20 Q 855 16, 870 20 T 900 20 Q 910 18, 920 20"/>
+
+  <!-- Flat hold + dropout -->
+  <path d="M 920 20 L 1000 20 L 1000 14 L 1040 14 L 1040 20 L 1100 20"/>
+
+  <!-- Final taper -->
+  <path d="M 1100 20 L 1140 20 L 1160 24 L 1180 18 L 1200 20"/>
+</svg>
