@@ -14,6 +14,28 @@ if (menuBtn && navLinks) {
   });
 }
 
+// === Helper: show success panel + hide form ===
+function showSuccessPanel(form, options = {}) {
+  const successId = form.getAttribute('data-success-id');
+  if (!successId) return;
+  const panel = document.getElementById(successId);
+  if (!panel) return;
+
+  if (options.title) {
+    const h3 = panel.querySelector('h3');
+    if (h3) h3.textContent = options.title;
+  }
+  if (options.message) {
+    const p = panel.querySelector('p');
+    if (p) p.textContent = options.message;
+  }
+
+  panel.classList.add('show');
+  form.reset();
+  // Scroll the panel into view
+  panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
 // === Generic form handler (employer enquiry + contact) ===
 function bindFormHandler(formId) {
   const form = document.getElementById(formId);
@@ -50,11 +72,14 @@ function bindFormHandler(formId) {
       });
 
       if (response.ok) {
-        if (status) {
+        // Use the success panel if the form has one configured
+        if (form.hasAttribute('data-success-id')) {
+          showSuccessPanel(form);
+        } else if (status) {
           status.className = 'form-status success';
           status.textContent = '✓ Message sent. We\'ll get back to you within 1 business day.';
+          form.reset();
         }
-        form.reset();
       } else {
         throw new Error('Server returned ' + response.status);
       }
@@ -104,7 +129,6 @@ if (candidateForm) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => {
-        // Strip the "data:application/pdf;base64," prefix
         const base64 = reader.result.split(',')[1];
         resolve(base64);
       };
@@ -179,16 +203,18 @@ if (candidateForm) {
       });
 
       if (response.ok) {
-        if (status) {
-          status.className = 'form-status success';
-          status.textContent = '✓ Registration received! Matt will personally review your details within 5 business days. Check your email for confirmation.';
-        }
-        candidateForm.reset();
         // Reset discipline-other dropdown visibility
         const discOther = document.getElementById('disciplineOtherWrap');
         if (discOther) discOther.style.display = 'none';
-        // Scroll to status
-        if (status) status.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+        if (candidateForm.hasAttribute('data-success-id')) {
+          showSuccessPanel(candidateForm);
+        } else if (status) {
+          status.className = 'form-status success';
+          status.textContent = '✓ Registration received! Our team will review your details within 5 business days.';
+          candidateForm.reset();
+          status.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
       } else {
         throw new Error('Server returned ' + response.status);
       }
