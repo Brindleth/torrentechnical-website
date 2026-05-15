@@ -153,7 +153,14 @@
       <h2>Tell us about the role.</h2>
       <p class="lead mb-lg">The more detail, the faster we can get you a shortlist. Expect a response within 1 business day.</p>
 
-      <form id="employerForm" action="https://n8n.torrentechnical.com/webhook/employer-enquiry" method="POST">
+      <div class="form-success" id="employerSuccess">
+        <div class="form-success-icon">✓</div>
+        <h3>Enquiry received.</h3>
+        <p>Thanks — we've got your role details. Our team will review and respond within 1 business day with next steps.</p>
+        <p style="font-size: 0.9rem; color: var(--text-muted);">For urgent matters email <a href="mailto:employers@torrentechnical.com">employers@torrentechnical.com</a>.</p>
+      </div>
+
+      <form id="employerForm" action="https://n8n.torrentechnical.com/webhook/employer-enquiry" method="POST" data-success-id="employerSuccess">
         <div class="form-row form-row-2">
           <div class="form-group">
             <label for="name">Your name *</label>
