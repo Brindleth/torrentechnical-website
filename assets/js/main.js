@@ -15,23 +15,20 @@ if (menuBtn && navLinks) {
 }
 
 // === Helper: show success panel + hide form ===
-function showSuccessPanel(form, options = {}) {
+function showSuccessPanel(form) {
   const successId = form.getAttribute('data-success-id');
   if (!successId) return;
   const panel = document.getElementById(successId);
   if (!panel) return;
 
-  if (options.title) {
-    const h3 = panel.querySelector('h3');
-    if (h3) h3.textContent = options.title;
-  }
-  if (options.message) {
-    const p = panel.querySelector('p');
-    if (p) p.textContent = options.message;
-  }
-
+  // Hide the form completely
+  form.style.display = 'none';
+  // Show the success panel
+  panel.style.display = 'block';
   panel.classList.add('show');
+
   form.reset();
+
   // Scroll the panel into view
   panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
@@ -72,7 +69,6 @@ function bindFormHandler(formId) {
       });
 
       if (response.ok) {
-        // Use the success panel if the form has one configured
         if (form.hasAttribute('data-success-id')) {
           showSuccessPanel(form);
         } else if (status) {
@@ -107,7 +103,6 @@ if (candidateForm) {
   const fileInput = document.getElementById('cv_file');
   const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
-  // File size validation on selection
   if (fileInput) {
     fileInput.addEventListener('change', () => {
       const file = fileInput.files[0];
@@ -124,7 +119,6 @@ if (candidateForm) {
     });
   }
 
-  // Helper: convert File to base64
   function fileToBase64(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -154,22 +148,18 @@ if (candidateForm) {
       const formData = new FormData(candidateForm);
       const payload = {};
 
-      // Collect work_preferences as array (multi-checkbox)
       const workPrefs = formData.getAll('work_preferences');
       payload.work_preferences = workPrefs;
 
-      // Collect all other fields as strings
       for (const [key, value] of formData.entries()) {
         if (key === 'work_preferences' || key === 'cv_file') continue;
         payload[key] = value;
       }
 
-      // Validate work preferences
       if (workPrefs.length === 0) {
         throw new Error('Please select at least one work preference.');
       }
 
-      // Handle file upload
       const file = fileInput && fileInput.files[0];
       if (file) {
         if (file.size > MAX_FILE_SIZE) {
@@ -203,7 +193,6 @@ if (candidateForm) {
       });
 
       if (response.ok) {
-        // Reset discipline-other dropdown visibility
         const discOther = document.getElementById('disciplineOtherWrap');
         if (discOther) discOther.style.display = 'none';
 
