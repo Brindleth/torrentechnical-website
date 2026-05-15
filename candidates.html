@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/css/style.css?v=2026-05-15">
+<link rel="stylesheet" href="/assets/css/style.css?v=2026-05-15b">
 </head>
 <body>
 
@@ -36,7 +36,7 @@
   <div class="container">
     <span class="eyebrow">For Candidates</span>
     <h1>Get matched by an engineer, not a keyword filter.</h1>
-    <p class="lead" style="margin-top: 24px;">Torren Technical sources for Australian employers across engineering, industrial trades, construction, and property maintenance. Every registration is reviewed personally — not parsed by a robot.</p>
+    <p class="lead" style="margin-top: 24px;">Torren Technical sources for Australian employers across engineering, industrial trades, construction, mining and property maintenance. Every registration is reviewed by our team — not parsed by a robot.</p>
     <div class="btn-group mt-lg">
       <a href="#register" class="btn btn-primary">Register your interest →</a>
       <a href="#process" class="btn btn-ghost">How it works</a>
@@ -53,12 +53,12 @@
       <div class="card">
         <div class="card-icon">💸</div>
         <h3>Zero candidate fees</h3>
-        <p>We're paid by employers, not by you. No registration fees, no placement fees, no "premium services" upsell. Ever.</p>
+        <p>We're paid by employers, not by candidates. No registration fees, no placement fees, no "premium services" upsell. Ever.</p>
       </div>
       <div class="card">
         <div class="card-icon">🔧</div>
         <h3>Technical fit, not keyword fit</h3>
-        <p>Your registration is reviewed by someone who reads engineering specs. If we put you forward, it's because the role actually matches you.</p>
+        <p>Your registration is reviewed by consultants who read engineering specs. If we put you forward, it's because the role actually matches you.</p>
       </div>
       <div class="card">
         <div class="card-icon">🔒</div>
@@ -98,7 +98,7 @@
       <div class="card">
         <div class="card-icon">2</div>
         <h3>Review</h3>
-        <p>Matt personally reviews every registration within 5 business days. If you're a fit for current or upcoming roles, you'll be contacted.</p>
+        <p>Our team reviews every registration within 5 business days. If you're a fit for current or upcoming roles, you'll be contacted.</p>
       </div>
       <div class="card">
         <div class="card-icon">3</div>
@@ -119,7 +119,7 @@
     <div class="form-wrap">
       <span class="eyebrow">Register</span>
       <h2>Tell us about yourself.</h2>
-      <p class="lead mb-lg">Takes 5–10 minutes. All fields marked * are required. Matt personally reviews every submission within 5 business days.</p>
+      <p class="lead mb-lg">Takes 5–10 minutes. All fields marked * are required. Our team reviews every submission within 5 business days.</p>
 
       <form id="candidateForm" action="https://n8n.torrentechnical.com/webhook/candidate-registration" method="POST">
 
@@ -182,35 +182,61 @@
             <select id="discipline" name="discipline" required onchange="document.getElementById('disciplineOtherWrap').style.display = this.value === 'Other' ? 'flex' : 'none';">
               <option value="">Select…</option>
               <optgroup label="Engineering">
-                <option>Test Engineering (Electronic)</option>
-                <option>Automation / PLC</option>
-                <option>Embedded / Firmware</option>
-                <option>Controls / Instrumentation</option>
+                <option>Electrical Engineering</option>
+                <option>Electronic Engineering</option>
+                <option>Software Engineering</option>
+                <option>Embedded / Firmware Engineering</option>
+                <option>Test Engineering</option>
                 <option>Mechanical / Mechatronics Engineering</option>
                 <option>Civil / Structural Engineering</option>
+                <option>Chemical / Process Engineering</option>
+                <option>Aerospace Engineering</option>
+                <option>Controls / Automation / PLC</option>
+                <option>Instrumentation Engineering</option>
+                <option>RF / Microwave Engineering</option>
+                <option>Power Engineering</option>
+                <option>Mining Engineering</option>
                 <option>Defence-cleared (NV1/NV2/PV)</option>
               </optgroup>
               <optgroup label="Industrial Trades">
-                <option>Industrial Electrical / Maintenance</option>
-                <option>Field Service Engineering</option>
-                <option>Electrical Trade (Licensed Electrician)</option>
+                <option>Licensed Electrician</option>
                 <option>Plumbing / Gas Fitting</option>
+                <option>Industrial Mechanical Fitter</option>
+                <option>Instrument Technician</option>
                 <option>HVAC / Refrigeration</option>
-                <option>Welding / Boilermaking / Fabrication</option>
+                <option>Welding / Boilermaking</option>
+                <option>Fabrication</option>
                 <option>Heavy Diesel Mechanic</option>
+                <option>Rigging</option>
+                <option>Field Service Technician</option>
               </optgroup>
-              <optgroup label="Construction">
+              <optgroup label="Construction &amp; Site">
                 <option>Project Management (Construction)</option>
                 <option>Site Supervision / Foreman</option>
-                <option>Construction Trades (Carpentry/Concreting/Formwork)</option>
-                <option>Scaffolding / Rigging</option>
+                <option>Formwork Carpentry</option>
+                <option>Concreting</option>
+                <option>Steelfixing</option>
+                <option>Scaffolding</option>
                 <option>Painting / Plastering / Tiling</option>
                 <option>Plant Operator (Crane/Excavator/Forklift)</option>
+                <option>Surveying</option>
+              </optgroup>
+              <optgroup label="Mining &amp; Resources">
+                <option>FIFO/DIDO Trades</option>
+                <option>Mining Operator</option>
+                <option>Maintenance Crew</option>
+                <option>Mining Field Service Technician</option>
+              </optgroup>
+              <optgroup label="Property &amp; Maintenance">
+                <option>Property Maintenance / Handyperson</option>
+                <option>Building Maintenance</option>
+                <option>Grounds &amp; Facilities</option>
+                <option>Cleaning</option>
+                <option>Multi-skilled Trades</option>
               </optgroup>
               <optgroup label="Other">
-                <option>Property Maintenance / Handyperson</option>
                 <option>Labouring / Trade Assistant</option>
-                <option>Cleaning / Grounds Maintenance</option>
+                <option>IT / Software Specialist</option>
                 <option>Other</option>
               </optgroup>
             </select>
@@ -278,7 +304,7 @@
           <div class="form-group">
             <label for="cv_file">CV upload (PDF, DOCX, max 5MB)</label>
             <input type="file" id="cv_file" name="cv_file" accept=".pdf,.doc,.docx,.txt,.rtf,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
-            <small style="color: var(--text-muted); font-size: 0.8rem; margin-top: 4px;">Optional — use the text field below if you prefer.</small>
+            <small style="color: rgba(255,255,255,0.65); font-size: 0.8rem; margin-top: 4px;">Optional — use the text field below if you prefer.</small>
           </div>
           <div class="form-group">
             <label for="cv_text_pasted">Or paste CV text</label>
@@ -307,11 +333,11 @@
     <div class="cards-grid">
       <div class="card">
         <h3>Are you a typical recruitment agency?</h3>
-        <p>No. Most agencies are sales-led with engineers nowhere in the process. Torren Technical is run by an engineer who personally reviews every candidate and brief.</p>
+        <p>No. Most agencies are sales-led with engineers nowhere in the process. Torren Technical is run by engineers and technical specialists who review every candidate and brief.</p>
       </div>
       <div class="card">
         <h3>What disciplines do you cover?</h3>
-        <p>Engineering, industrial trades, construction, and property maintenance. If your discipline isn't in the dropdown, select "Other" and tell us.</p>
+        <p>Engineering (all branches), industrial trades, construction &amp; site, mining &amp; resources, and property maintenance. If your discipline isn't in the dropdown, select "Other" and tell us.</p>
       </div>
       <div class="card">
         <h3>Do I need to be in Australia?</h3>
@@ -341,7 +367,7 @@
           <span class="brand-mark">T</span>
           <span>Torren Technical</span>
         </a>
-        <p style="font-size: 0.9rem; max-width: 360px;">Specialist Australian recruitment for engineering, industrial trades, and construction. Built and run by an engineer.</p>
+        <p style="font-size: 0.9rem; max-width: 360px;">Specialist Australian recruitment for engineering, industrial trades, and construction. Engineer-led shortlists.</p>
       </div>
       <div class="footer-col">
         <h4>Services</h4>
