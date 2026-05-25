@@ -1,0 +1,727 @@
+{
+  "name": "01_job_intake",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyX",
+              "value": 30,
+              "unit": "minutes"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {
+          "labelIds": [
+            "Label_4155037641144658083"
+          ]
+        },
+        "options": {
+          "downloadAttachments": true
+        }
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "ef099b85-97e2-46de-8808-227a479368cd",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "hc99QFEvPmCa77o6",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const allItems = $input.all();\nconst results = [];\n\nfor (const item of allItems) {\n  const input = item.json;\n  \n  let body = '';\n  \n  if (typeof input.text === 'string') {\n    body = input.text;\n  } else if (typeof input.snippet === 'string') {\n    body = input.snippet;\n  } else if (typeof input.html === 'string') {\n    body = input.html.replace(/<[^>]*>/g, ' ').replace(/\\s+/g, ' ').trim();\n  }\n  \n  if (!body && input.payload) {\n    if (input.payload.body && input.payload.body.data) {\n      try {\n        body = Buffer.from(input.payload.body.data, 'base64').toString('utf-8');\n      } catch (e) {}\n    }\n    if (!body && Array.isArray(input.payload.parts)) {\n      for (const part of input.payload.parts) {\n        if (part.body && part.body.data) {\n          try {\n            const decoded = Buffer.from(part.body.data, 'base64').toString('utf-8');\n            if (part.mimeType === 'text/plain') {\n              body = decoded;\n              break;\n            } else if (part.mimeType === 'text/html' && !body) {\n              body = decoded.replace(/<[^>]*>/g, ' ').replace(/\\s+/g, ' ').trim();\n            }\n          } catch (e) {}\n        }\n      }\n    }\n    // Handle nested multipart structure (alternative type)\n    if (!body && Array.isArray(input.payload.parts)) {\n      for (const part of input.payload.parts) {\n        if (Array.isArray(part.parts)) {\n          for (const subpart of part.parts) {\n            if (subpart.body && subpart.body.data) {\n              try {\n                const decoded = Buffer.from(subpart.body.data, 'base64').toString('utf-8');\n                if (subpart.mimeType === 'text/plain') {\n                  body = decoded;\n                  break;\n                } else if (subpart.mimeType === 'text/html' && !body) {\n                  body = decoded.replace(/<[^>]*>/g, ' ').replace(/\\s+/g, ' ').trim();\n                }\n              } catch (e) {}\n            }\n          }\n        }\n      }\n    }\n  }\n  \n  if (!body) body = input.snippet || 'No body found';\n  \n  // Decode common HTML entities\n  body = body\n    .replace(/&#39;/g, \"'\")\n    .replace(/&apos;/g, \"'\")\n    .replace(/&quot;/g, '\"')\n    .replace(/&amp;/g, '&')\n    .replace(/&lt;/g, '<')\n    .replace(/&gt;/g, '>')\n    .replace(/&nbsp;/g, ' ')\n    .replace(/&ndash;/g, '–')\n    .replace(/&mdash;/g, '—');\n  \n  body = body.substring(0, 6000);\n  \n  const source = body.includes('seek.com') ? 'Seek' :\n                 body.includes('indeed.com') ? 'Indeed' :\n                 body.includes('linkedin.com') ? 'LinkedIn' : 'Email';\n  \n  results.push({\n    json: {\n      ad_text: body,\n      source: source,\n      source_email_id: input.id || '',\n      source_subject: input.Subject || input.subject || '',\n      received_at: new Date().toISOString()\n    }\n  });\n}\n\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "117f4a03-476b-4368-8ece-346d37e6a7a2",
+      "name": "Extract Email Body"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.item.json;\nconst prompt = `You are parsing an Australian job-alert digest email. The email contains MULTIPLE separate job postings as a list. Your job: identify each individual job and extract its core fields plus the source URL.\nThe source of this digest is: ${item.source}\nReturn ONLY a JSON object with this exact structure:\n{\n  \"jobs\": [\n    {\n      \"role_title\": \"string\",\n      \"company\": \"string or null\",\n      \"location\": \"string\",\n      \"salary_snippet\": \"string or null (whatever pay info is visible in the digest)\",\n      \"url\": \"string or null (the URL to the full job ad if visible)\"\n    }\n  ]\n}\nRules:\n- Each individual job listing must become one object in the jobs array.\n- Skip headers, footers, unsubscribe links, marketing text, navigation links.\n- A typical entry has: title line, company line, location line, optional salary line, optional logo marker.\n- DO NOT merge multiple jobs together. Each role gets its own entry.\n- If a digest has 15 jobs, return 15 entries. If it has 3, return 3.\n- For url: extract any job-specific URL near each entry. Seek URLs contain \"seek.com.au/job/\" or similar. Indeed URLs contain \"indeed.com/viewjob\". LinkedIn URLs contain \"linkedin.com/jobs/view/\". If no URL is findable for that specific job, return null.\nDIGEST EMAIL TEXT:\n${item.ad_text}`;\n\nreturn [{\n  json: {\n    ...item,\n    anthropic_model: \"claude-haiku-4-5\",\n    anthropic_max_tokens: 4096,\n    anthropic_prompt: prompt\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "bdc229ee-ac83-4c8f-a7bc-a78e6e45c6ea",
+      "name": "Build Split Prompt"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "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"
+            },
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { \"model\": $json.anthropic_model, \"max_tokens\": $json.anthropic_max_tokens, \"messages\": [{ \"role\": \"user\", \"content\": $json.anthropic_prompt }] } }}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        624,
+        0
+      ],
+      "id": "9caf94b1-6ea6-4ff3-ab56-c87aa8fd9152",
+      "name": "HTTP Request: Split Digest"
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.item.json;\nconst upstream = $('Build Split Prompt').first().json;\n\n// Anthropic API returns content array\nconst content = response.content?.[0]?.text || '';\n\nlet parsed = { jobs: [] };\ntry {\n  // Strip markdown fences if present\n  const cleaned = content.replace(/```json\\n?/g, '').replace(/```\\n?/g, '').trim();\n  parsed = JSON.parse(cleaned);\n} catch (e) {\n  return [{ json: { error: 'Failed to parse split response', raw: content.substring(0, 500) } }];\n}\n\nconst jobs = parsed.jobs || [];\nconst results = [];\nfor (const job of jobs) {\n  results.push({\n    json: {\n      role_title: job.role_title || 'Unknown',\n      company: job.company || null,\n      location: job.location || 'Unknown',\n      salary_snippet: job.salary_snippet || null,\n      url: job.url || null,\n      source: upstream.source,\n      source_email_id: upstream.source_email_id,\n      received_at: upstream.received_at,\n      ad_text_full: upstream.ad_text\n    }\n  });\n}\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        832,
+        0
+      ],
+      "id": "fce51451-baf8-4f84-9b70-f5daf64ee417",
+      "name": "Parse Split Response"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const job = $input.item.json;\n\nconst prompt = `You are a commercial recruitment analyst evaluating an Australian job posting. Your job: assess scope, entity type, and commercial value, and return a structured score.\n\nRETURN ONLY valid JSON. No markdown, no commentary. Exact structure:\n\n{\n  \"entity_type\": \"direct_employer | recruiter_agency | msp_rpo | job_board_aggregator | unknown\",\n  \"entity_confidence\": 1-5,\n  \"technical_fit_score\": 1-5,\n  \"salary_value_score\": 1-5,\n  \"commercial_outreach_score\": 1-5,\n  \"total\": 3-15,\n  \"score_band\": \"critical | hot | warm | low | ignore\",\n  \"reasoning_flags\": [\"array of standardised tags\"],\n  \"reason\": \"max 25 words explaining the score\"\n}\n\nENTITY CLASSIFICATION:\n- direct_employer: SME, mid-size, or enterprise hiring directly. Named team, branded posting, internal recruiter or hiring manager visible.\n- recruiter_agency: External recruitment firm advertising on behalf of an undisclosed client. Generic \"we're hiring for our client\" phrasing, recruiter contact details, agency-branded.\n- msp_rpo: Managed service provider or RPO (Hays, Randstad, Korn Ferry, ManpowerGroup) operating bulk requisitions for an enterprise client. Same advertiser posting many similar roles.\n- job_board_aggregator: Indeed/Seek auto-scraped duplicate, anonymous lister, no real company info.\n- unknown: insufficient signal to decide.\n\nSCORING (each 1-5):\n\ntechnical_fit_score:\n5 = test engineer / PLC / automation / embedded systems / defence-cleared / safety-critical\n4 = industrial electrician / control systems / maintenance / field service / electronics\n3 = general electrical / electronics adjacent / instrumentation\n2 = soft technical (BMS, technician trainee, basic field tech)\n1 = non-technical or unrelated\n\nsalary_value_score:\n5 = >$130k base or daily rate >$800\n4 = $100-130k or daily $600-800\n3 = $80-100k\n2 = <$80k\n1 = clearly junior or salary clearly low / not disclosed and listing reads junior\n\ncommercial_outreach_score (the most important new dimension):\n5 = High commercial upside. Direct SME employer with named contact, premium salary, niche skillset. Easy access, high fee potential.\n4 = Solid opportunity. Either direct employer with decent commercial signal, OR a recruiter agency clearly struggling to fill a niche role (sourcing support opportunity).\n3 = Moderate. Generic direct employer listing, or competent agency that may or may not need help.\n2 = Low. Large MSP/RPO bulk listing, or agency with strong delivery pipeline that won't subcontract.\n1 = Avoid. Anonymous aggregator, junior role, no commercial route, or one of Torren's competitors.\n\nTOTAL = technical_fit + salary_value + commercial_outreach (sum 3-15).\n\nSCORE BANDS:\n13-15 = critical (call today)\n10-12 = hot (call this week)\n7-9 = warm (qualify further)\n4-6 = low (low priority)\n1-3 = ignore (do not pursue)\n\nREASONING_FLAGS — pick any that apply from this fixed vocabulary:\n\"weak_ad_copy\", \"urgent_signals\", \"premium_salary\", \"niche_skillset\", \"named_team\",\n\"anonymous_lister\", \"msp_signal\", \"agency_advertising\", \"defence_clearance\",\n\"remote_friendly\", \"fifo\", \"repeat_lister\", \"salary_hidden\", \"junior_role\",\n\"senior_role\", \"split_fee_candidate\"\n\nCRITICAL RULES:\n- Recruiter agency posts are NOT automatically low. A recruiter struggling with a niche role is a high-value sourcing support target.\n- A direct employer with poor commercial access (large enterprise procurement, low salary, junior role) can score below a recruiter agency with a hot niche role.\n- commercial_outreach_score reflects whether Torren Technical can actually win business here, not just whether the role is technical.\n\nJOB SNIPPET:\nRole: ${job.role_title}\nCompany: ${job.company || 'Unknown'}\nLocation: ${job.location}\nSalary: ${job.salary_snippet || 'Not stated'}\nSource: ${job.source}`;\n\nreturn {\n  json: {\n    role_title: job.role_title,\n    company: job.company,\n    location: job.location,\n    salary_snippet: job.salary_snippet,\n    url: job.url,\n    source: job.source,\n    source_email_id: job.source_email_id,\n    received_at: job.received_at,\n    qs_model: \"claude-haiku-4-5\",\n    qs_max_tokens: 512,\n    qs_prompt: prompt\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1040,
+        0
+      ],
+      "id": "b3441f0c-863b-42fb-bb41-ae67ffd8aea5",
+      "name": "Build Quick Score Prompt"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "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"
+            },
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { \"model\": $json.qs_model, \"max_tokens\": $json.qs_max_tokens, \"messages\": [{ \"role\": \"user\", \"content\": $json.qs_prompt }] } }}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 6000
+            }
+          },
+          "timeout": 30000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1248,
+        0
+      ],
+      "id": "dce7e6b3-bb30-4969-9927-369df556d288",
+      "name": "HTTP Request: Quick Score"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const response = $input.item.json;\nconst upstream = $('Build Quick Score Prompt').item.json;\nconst content = response.content?.[0]?.text || '';\n\n// Defaults if parse fails\nlet score = {\n  entity_type: 'unknown',\n  entity_confidence: 1,\n  technical_fit_score: 1,\n  salary_value_score: 1,\n  commercial_outreach_score: 1,\n  total: 3,\n  score_band: 'ignore',\n  reasoning_flags: [],\n  reason: 'parse failed'\n};\n\ntry {\n  const cleaned = content.replace(/```json\\n?/g, '').replace(/```\\n?/g, '').trim();\n  const parsed = JSON.parse(cleaned);\n\n  // Clamp / coerce each field to expected type\n  score.entity_type = parsed.entity_type || 'unknown';\n  score.entity_confidence = Math.min(5, Math.max(1, parseInt(parsed.entity_confidence) || 1));\n  score.technical_fit_score = Math.min(5, Math.max(1, parseInt(parsed.technical_fit_score) || 1));\n  score.salary_value_score = Math.min(5, Math.max(1, parseInt(parsed.salary_value_score) || 1));\n  score.commercial_outreach_score = Math.min(5, Math.max(1, parseInt(parsed.commercial_outreach_score) || 1));\n  score.total = Math.min(15, Math.max(3, parseInt(parsed.total) ||\n    (score.technical_fit_score + score.salary_value_score + score.commercial_outreach_score)));\n// Validate score_band strictly — only accept valid enum values, else derive from total\nconst validBands = ['critical', 'hot', 'warm', 'low', 'ignore'];\nconst aiBand = (parsed.score_band || '').toLowerCase().trim();\nscore.score_band = validBands.includes(aiBand) ? aiBand : (\n  score.total >= 13 ? 'critical' :\n  score.total >= 10 ? 'hot' :\n  score.total >= 7  ? 'warm' :\n  score.total >= 4  ? 'low' : 'ignore'\n);\n\n// Also validate entity_type strictly\nconst validEntityTypes = ['direct_employer', 'recruiter_agency', 'msp_rpo', 'job_board_aggregator', 'unknown'];\nconst aiEntity = (parsed.entity_type || '').toLowerCase().trim();\nscore.entity_type = validEntityTypes.includes(aiEntity) ? aiEntity : 'unknown';\n  score.reasoning_flags = Array.isArray(parsed.reasoning_flags) ? parsed.reasoning_flags : [];\n  score.reason = parsed.reason || '';\n} catch (e) {\n  // Leave defaults; reason already says 'parse failed'\n}\n\n// Generate stable per-job ID\nconst idSeed = `${upstream.role_title}|${upstream.company || ''}|${upstream.url || ''}`;\nlet hash = 0;\nfor (let i = 0; i < idSeed.length; i++) {\n  hash = ((hash << 5) - hash) + idSeed.charCodeAt(i);\n  hash = hash & hash;\n}\nconst jobId = 'J-' + Math.abs(hash).toString(36).toUpperCase().padStart(8, '0').substring(0, 8);\n\nreturn {\n  json: {\n    job_id: jobId,\n    role_title: upstream.role_title,\n    company: upstream.company,\n    location: upstream.location,\n    salary_snippet: upstream.salary_snippet,\n    url: upstream.url,\n    source: upstream.source,\n    source_email_id: upstream.source_email_id,\n    received_at: upstream.received_at,\n    quick_score: score.total,\n    score_band: score.score_band,\n    entity_type: score.entity_type,\n    entity_confidence: score.entity_confidence,\n    technical_fit_score: score.technical_fit_score,\n    salary_value_score: score.salary_value_score,\n    commercial_outreach_score: score.commercial_outreach_score,\n    reasoning_flags: score.reasoning_flags,\n    quick_score_reason: score.reason\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1456,
+        0
+      ],
+      "id": "728289f3-1ee7-455e-82f4-4e838e6bd9ca",
+      "name": "Parse Quick Score"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "c5d9da96-bfa8-48bb-bfb0-5e751c2f7e70",
+              "leftValue": "={{ $json.quick_score }}",
+              "rightValue": 9,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1664,
+        0
+      ],
+      "id": "a8986f54-a681-4aea-9bbf-a8f2068a067d",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "url": "=={{ $json.url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 15000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2112,
+        -96
+      ],
+      "id": "89e2b45a-92c5-4a8c-9a05-51a828196768",
+      "name": "Fetch Job URL",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const item = $input.item.json;\nconst upstream = $('Parse Quick Score').item.json;\n\n// data field comes from HTTP node when Response Format is Text\nlet raw = item.data || item.body || '';\n\n// If fetch failed, fall back to the digest snippet\nlet fetched_ok = true;\nif (!raw || raw.length < 200 || item.error) {\n  fetched_ok = false;\n  raw = `Role: ${upstream.role_title}\nCompany: ${upstream.company || 'Unknown'}\nLocation: ${upstream.location}\nSalary: ${upstream.salary_snippet || 'Not stated'}\nScore reason from digest: ${upstream.quick_score_reason}`;\n}\n\n// Strip HTML if it looks like HTML\nlet cleaned = raw;\nif (raw.includes('<') && raw.includes('>')) {\n  cleaned = raw\n    .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n    .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n    .replace(/<[^>]+>/g, ' ')\n    .replace(/&nbsp;/g, ' ')\n    .replace(/&amp;/g, '&')\n    .replace(/&quot;/g, '\"')\n    .replace(/&#39;/g, \"'\")\n    .replace(/\\s+/g, ' ')\n    .trim();\n}\n\n// Cap at 12000 chars to keep prompt manageable\ncleaned = cleaned.substring(0, 12000);\n\nreturn {\n  json: {\n    job_id: \nupstream.job_id,\n    role_title: upstream.role_title,\n    company: upstream.company,\n    location: upstream.location,\n    salary_snippet: upstream.salary_snippet,\n    url: upstream.url,\n    source: upstream.source,\n    source_email_id: upstream.source_email_id,\n    received_at: upstream.received_at,\n    quick_score: upstream.quick_score,\n    quick_score_reason: upstream.quick_score_reason,\n    fetched_ok: fetched_ok,\n    page_text: cleaned\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2336,
+        -96
+      ],
+      "id": "b289f130-aa4c-4ab0-80cf-4d739677d309",
+      "name": "Extract Job Page Text"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const item = $input.item.json;\nlet url = item.url || '';\n\n// Rewrite Indeed click-tracking URLs to canonical viewjob URL\nif (url.includes('indeed.com/rc/clk') || url.includes('indeed.com/pagead/clk')) {\n  const jkMatch = url.match(/[?&]jk=([a-f0-9]+)/);\n  if (jkMatch) {\n    url = `https://au.indeed.com/viewjob?jk=${jkMatch[1]}`;\n  }\n}\n\nreturn {\n  json: {\n    ...item,\n    url: url\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1872,
+        -96
+      ],
+      "id": "3c7d178e-7c48-4bee-bb19-73fe3ee4bf9f",
+      "name": "Normalize URL"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const item = $input.item.json;\n\nconst prompt = `You are a senior recruitment business development analyst at Torren Technical, an engineer-led Australian technical recruitment firm. You have a high-priority job posting (quick score ${item.quick_score}/15, ${item.score_band}, entity_type=${item.entity_type}). Your job: produce decision-grade commercial intelligence so a recruiter can pick up the phone within minutes.\n\nRETURN ONLY valid JSON. No markdown. Exact structure:\n\n{\n  \"full_description\": \"2-4 sentences on the role in your own words\",\n  \"key_requirements\": [\"concise\", \"must-haves\"],\n  \"nice_to_haves\": [\"concise\", \"preferreds\"],\n  \"company_blurb\": \"1-2 sentences on what the company does, or null if unclear\",\n  \"company_size_hint\": \"SME | mid-size | large | agency | unknown\",\n\n  \"hiring_contact_name\": \"name if explicitly stated, else null\",\n  \"hiring_contact_email\": \"email if explicitly stated, else null\",\n  \"fifo\": \"yes | no | unclear\",\n  \"contract_type\": \"permanent | contract | casual | fixed-term | unclear\",\n\n  \"salary_clarified\": \"best salary string available, e.g. '$130-150k + super'\",\n  \"salary_min\": integer or null (annual AUD, no super),\n  \"salary_max\": integer or null (annual AUD, no super),\n\n  \"inferred_client_name\": \"if this is a recruiter agency post and the underlying client is guessable from clues, name them. Else null.\",\n  \"inferred_client_confidence\": 1-5 (1=wild guess, 5=clearly identified),\n\n  \"pain_hypothesis\": \"1 sentence: what problem is the lister trying to solve by hiring this role\",\n  \"outreach_angle\": \"1 sentence: how a Torren Technical recruiter could open a relevant conversation\",\n\n  \"recommended_service\": \"retainer_search | per_shortlist_search | contingent_recruitment | recruiter_sourcing_support | do_not_pursue\",\n  \"recommended_first_action\": \"the single most useful first action a recruiter should take (one short sentence)\",\n  \"employee_instruction\": \"specific call script opener or email template seed for the recruiter to use (one to two short sentences)\",\n\n  \"urgency\": \"low | medium | high | critical\",\n  \"relationship_potential\": 1-5 (1=transactional one-off, 5=could become long-term retained client),\n  \"placement_probability\": 1-5 (1=unlikely we'll fill, 5=high probability we can supply),\n  \"commercial_viability\": 1-5 (1=unprofitable to pursue, 5=textbook profitable fit),\n\n  \"additional_flags\": [\"any extra reasoning_flags worth adding to the existing list\"]\n}\n\nRECOMMENDED SERVICE GUIDE:\n- retainer_search: senior/critical hire, employer can commit upfront fee, specialist skillset. Best for direct employers paying for confidentiality, exclusivity, or quality.\n- per_shortlist_search: well-defined mid-senior search where the client wants a curated shortlist without exclusivity. Fixed fee per shortlist.\n- contingent_recruitment: standard \"no placement, no fee\" for technical roles where the market is competitive but viable.\n- recruiter_sourcing_support: the lister is themselves a recruiter agency that's struggling, and Torren can subcontract candidate generation on a split-fee basis.\n- do_not_pursue: large MSP/RPO commodity role, junior position with no commercial fee headroom, or competitor recruiter.\n\nSALARY EXTRACTION RULES:\n- Parse base salary only. Exclude super.\n- \"$120k - $140k + super\" → min=120000, max=140000\n- \"$800/day\" → min=null, max=null (it's a day rate, leave numeric fields null but capture in salary_clarified)\n- \"Up to $150k\" → min=null, max=150000\n- \"From $100k\" → min=100000, max=null\n- If absent or unclear → both null\n\nCONTEXT:\nRole: ${item.role_title}\nCompany: ${item.company || 'Unknown'}\nLocation: ${item.location}\nSource: ${item.source}\nEntity Type (from quick score): ${item.entity_type}\nQuick Score Reasoning Flags: ${(item.reasoning_flags || []).join(', ')}\nFetched OK: ${item.fetched_ok}\n\nJOB AD TEXT:\n${item.page_text}`;\n\nreturn {\n  json: {\n    job_id: item.job_id,\n    role_title: item.role_title,\n    company: item.company,\n    location: item.location,\n    salary_snippet: item.salary_snippet,\n    url: item.url,\n    source: item.source,\n    source_email_id: item.source_email_id,\n    received_at: item.received_at,\n    quick_score: item.quick_score,\n    score_band: item.score_band,\n    entity_type: item.entity_type,\n    entity_confidence: item.entity_confidence,\n    technical_fit_score: item.technical_fit_score,\n    salary_value_score: item.salary_value_score,\n    commercial_outreach_score: item.commercial_outreach_score,\n    reasoning_flags: item.reasoning_flags,\n    quick_score_reason: item.quick_score_reason,\n    fetched_ok: item.fetched_ok,\n    de_model: \"claude-haiku-4-5\",\n    de_max_tokens: 2048,\n    de_prompt: prompt\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2560,
+        -96
+      ],
+      "id": "3bdeab60-7356-4f8e-ba86-00914451b4ea",
+      "name": "Build Deep Extract Prompt"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "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"
+            },
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { \"model\": $json.de_model, \"max_tokens\": $json.de_max_tokens, \"messages\": [{ \"role\": \"user\", \"content\": $json.de_prompt }] } }}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 1500
+            }
+          },
+          "timeout": 60000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2816,
+        -96
+      ],
+      "id": "611d08a2-35b7-494b-9c54-e0750444ac99",
+      "name": "HTTP Request: Deep Extract"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const response = $input.item.json;\nconst upstream = $('Parse Quick Score').item.json;\nconst content = response.content?.[0]?.text || '';\n\nlet extracted = {};\ntry {\n  const cleaned = content.replace(/```json\\n?/g, '').replace(/```\\n?/g, '').trim();\n  extracted = JSON.parse(cleaned);\n} catch (e) {\n  extracted = { error: 'parse failed' };\n}\n\n// Coerce / clamp ints\nfunction clampInt(v, min, max) {\n  if (v === null || v === undefined || v === '') return null;\n  const n = parseInt(v);\n  if (isNaN(n)) return null;\n  return Math.min(max, Math.max(min, n));\n}\n\nfunction intOrNull(v) {\n  if (v === null || v === undefined || v === '') return null;\n  const n = parseInt(v);\n  return isNaN(n) ? null : n;\n}\n\n// Merge reasoning flags from both stages\nconst baseFlags = Array.isArray(upstream.reasoning_flags) ? upstream.reasoning_flags : [];\nconst addFlags = Array.isArray(extracted.additional_flags) ? extracted.additional_flags : [];\nconst allFlags = Array.from(new Set([...baseFlags, ...addFlags]));\n\nreturn {\n  json: {\n    job_id: upstream.job_id,\n    role_title: upstream.role_title,\n    company: upstream.company,\n    location: upstream.location,\n    salary_snippet: upstream.salary_snippet,\n    url: upstream.url,\n    source: upstream.source,\n    source_email_id: upstream.source_email_id,\n    received_at: upstream.received_at,\n\n    // From quick score\n    quick_score: upstream.quick_score,\n    score_band: upstream.score_band,\n    entity_type: upstream.entity_type,\n    entity_confidence: upstream.entity_confidence,\n    technical_fit_score: upstream.technical_fit_score,\n    salary_value_score: upstream.salary_value_score,\n    commercial_outreach_score: upstream.commercial_outreach_score,\n    quick_score_reason: upstream.quick_score_reason,\n    fetched_ok: upstream.fetched_ok,\n\n    // From deep extract\n    full_description: extracted.full_description || '',\n    key_requirements: Array.isArray(extracted.key_requirements) ? extracted.key_requirements.join('; ') : '',\n    nice_to_haves: Array.isArray(extracted.nice_to_haves) ? extracted.nice_to_haves.join('; ') : '',\n    company_blurb: extracted.company_blurb || '',\n    company_size_hint: extracted.company_size_hint || 'unknown',\n    hiring_contact_name: extracted.hiring_contact_name || '',\n    hiring_contact_email: extracted.hiring_contact_email || '',\n    fifo: extracted.fifo || 'unclear',\n    contract_type: extracted.contract_type || 'unclear',\n    salary_clarified: extracted.salary_clarified || upstream.salary_snippet || '',\n    salary_min: intOrNull(extracted.salary_min),\n    salary_max: intOrNull(extracted.salary_max),\n    inferred_client_name: extracted.inferred_client_name || '',\n    inferred_client_confidence: clampInt(extracted.inferred_client_confidence, 1, 5),\n    pain_hypothesis: extracted.pain_hypothesis || '',\n    outreach_angle: extracted.outreach_angle || '',\n    recommended_service: extracted.recommended_service || 'unknown',\n    recommended_first_action: extracted.recommended_first_action || '',\n    employee_instruction: extracted.employee_instruction || '',\n    urgency: extracted.urgency || 'unclear',\n    relationship_potential: clampInt(extracted.relationship_potential, 1, 5),\n    placement_probability: clampInt(extracted.placement_probability, 1, 5),\n    commercial_viability: clampInt(extracted.commercial_viability, 1, 5),\n    reasoning_flags: allFlags\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3024,
+        -96
+      ],
+      "id": "b81df3d5-7602-472e-83f6-04ecb7918f67",
+      "name": "Parse Deep Extract"
+    },
+    {
+      "parameters": {
+        "chatId": "6818949213",
+        "text": "=🔥 {{ $('Parse Deep Extract').item.json.score_band.toUpperCase() }} — {{ $('Parse Deep Extract').item.json.entity_type.replace('_', ' ').toUpperCase() }} ({{ $('Parse Deep Extract').item.json.job_id }})\nScore: {{ $('Parse Deep Extract').item.json.quick_score }}/15 (T:{{ $('Parse Deep Extract').item.json.technical_fit_score }} S:{{ $('Parse Deep Extract').item.json.salary_value_score }} C:{{ $('Parse Deep Extract').item.json.commercial_outreach_score }})\n\nRole: {{ $('Parse Deep Extract').item.json.role_title }}\nCompany: {{ $('Parse Deep Extract').item.json.company || 'Unknown' }}\nLocation: {{ $('Parse Deep Extract').item.json.location }}\nSalary: {{ $('Parse Deep Extract').item.json.salary_clarified || 'Not stated' }}\nContract: {{ $('Parse Deep Extract').item.json.contract_type }}\n\n📋 {{ $('Parse Deep Extract').item.json.full_description }}\n\n💡 Pain: {{ $('Parse Deep Extract').item.json.pain_hypothesis }}\n🎯 Angle: {{ $('Parse Deep Extract').item.json.outreach_angle }}\n\n🚀 Service: {{ $('Parse Deep Extract').item.json.recommended_service.replace('_', ' ').toUpperCase() }}\n👉 First action: {{ $('Parse Deep Extract').item.json.recommended_first_action }}\n\n{{ $('Parse Deep Extract').item.json.url }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        3744,
+        -96
+      ],
+      "id": "08208885-23c7-4863-966d-ce85190c8703",
+      "name": "Hot Job: Send a Message",
+      "webhookId": "2b9ab4ca-22e4-48a6-88fb-68c36543eeb4",
+      "credentials": {
+        "telegramApi": {
+          "id": "Hug6cjhEzMvXAhin",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "6818949213",
+        "text": "= 📉  Low Priority Jobs have been updated in the Torren Operations.",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2352,
+        96
+      ],
+      "id": "b6994c56-cfbd-4f99-a668-a4293f87ef39",
+      "name": "Low Priority Jobs Message",
+      "webhookId": "2b9ab4ca-22e4-48a6-88fb-68c36543eeb4",
+      "executeOnce": true,
+      "credentials": {
+        "telegramApi": {
+          "id": "Hug6cjhEzMvXAhin",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.item.json;\n\n// Parse location into city/state. Format: \"Bangalow, NSW\" or \"Sydney NSW\"\nfunction parseLocation(loc) {\n  if (!loc) return { city: null, state: null };\n  loc = loc.trim();\n  if (loc.toLowerCase() === 'unknown') return { city: null, state: null };\n\n  const auStates = ['WA', 'NSW', 'VIC', 'QLD', 'SA', 'TAS', 'ACT', 'NT'];\n  const parts = loc.split(/\\s+/);\n  let state = null;\n  let cityPart = loc;\n\n  const lastWord = parts[parts.length - 1].replace(/[,]/g, '').toUpperCase();\n  if (auStates.includes(lastWord)) {\n    state = lastWord;\n    cityPart = parts.slice(0, -1).join(' ').replace(/,$/, '').trim();\n  }\n\n  if (cityPart.includes(',')) {\n    cityPart = cityPart.split(',').pop().trim();\n  }\n\n  return { city: cityPart || null, state };\n}\n\nconst loc = parseLocation(item.location);\n\n// Normalise source to lowercase enum\nconst sourceMap = { 'indeed': 'indeed', 'seek': 'seek', 'linkedin': 'linkedin', 'email': 'gmail' };\nconst source = sourceMap[(item.source || '').toLowerCase()] || 'other';\n\n// Build raw_payload for audit\nconst rawPayload = {\n  job_id: item.job_id,\n  source_email_id: item.source_email_id,\n  received_at: item.received_at,\n  quick_score_reason: item.quick_score_reason,\n  full_description: item.full_description,\n  key_requirements: item.key_requirements,\n  nice_to_haves: item.nice_to_haves,\n  company_blurb: item.company_blurb,\n  company_size_hint: item.company_size_hint,\n  fifo: item.fifo,\n  contract_type: item.contract_type,\n  salary_clarified: item.salary_clarified,\n  fetched_ok: item.fetched_ok\n};\n\nreturn {\n  json: {\n    role_title: item.role_title || '(Untitled Role)',\n    company_name: item.company || '(Unknown Company)',\n    location_city: loc.city,\n    location_state: loc.state,\n    external_source: source,\n    external_url: item.url,\n    discipline: item.full_description ? item.full_description.substring(0, 200) : null,\n    salary_text: item.salary_clarified || item.salary_snippet || null,\n    salary_min: item.salary_min,\n    salary_max: item.salary_max,\n    ai_score: item.quick_score,\n    ai_score_reasoning: item.quick_score_reason,\n    score_band: item.score_band,\n    entity_type: item.entity_type,\n    entity_confidence: item.entity_confidence,\n    technical_fit_score: item.technical_fit_score,\n    salary_value_score: item.salary_value_score,\n    commercial_outreach_score: item.commercial_outreach_score,\n    pain_hypothesis: item.pain_hypothesis,\n    outreach_angle: item.outreach_angle,\n    inferred_client_name: item.inferred_client_name || null,\n    inferred_client_confidence: item.inferred_client_confidence,\n    recommended_service: item.recommended_service,\n    recommended_first_action: item.recommended_first_action,\n    employee_instruction: item.employee_instruction,\n    relationship_potential: item.relationship_potential,\n    placement_probability: item.placement_probability,\n    commercial_viability: item.commercial_viability,\n    reasoning_flags: JSON.stringify(item.reasoning_flags || []),\n    hiring_contact_name: item.hiring_contact_name || null,\n    hiring_contact_email: item.hiring_contact_email || null,\n    discovered_at: item.received_at,\n    raw_payload: JSON.stringify(rawPayload),\n    // pass-through for downstream Telegram message\n    job_id: item.job_id,\n    role_title_for_telegram: item.role_title,\n    company_for_telegram: item.company,\n    location_for_telegram: item.location,\n    salary_for_telegram: item.salary_clarified,\n    contract_type_for_telegram: item.contract_type,\n    fifo_for_telegram: item.fifo,\n    full_description_for_telegram: item.full_description,\n    pain_for_telegram: item.pain_hypothesis,\n    angle_for_telegram: item.outreach_angle,\n    url_for_telegram: item.url,\n    score_for_telegram: item.quick_score,\n    band_for_telegram: item.score_band,\n    recommended_service_for_telegram: item.recommended_service\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3216,
+        -96
+      ],
+      "id": "39510bb9-598d-4511-8a2a-7ec4c3d9152d",
+      "name": "Build Hot Insert"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.item.json;\n\nfunction parseLocation(loc) {\n  if (!loc) return { city: null, state: null };\n  loc = loc.trim();\n  if (loc.toLowerCase() === 'unknown') return { city: null, state: null };\n  const auStates = ['WA', 'NSW', 'VIC', 'QLD', 'SA', 'TAS', 'ACT', 'NT'];\n  const parts = loc.split(/\\s+/);\n  let state = null;\n  let cityPart = loc;\n  const lastWord = parts[parts.length - 1].replace(/[,]/g, '').toUpperCase();\n  if (auStates.includes(lastWord)) {\n    state = lastWord;\n    cityPart = parts.slice(0, -1).join(' ').replace(/,$/, '').trim();\n  }\n  if (cityPart.includes(',')) {\n    cityPart = cityPart.split(',').pop().trim();\n  }\n  return { city: cityPart || null, state };\n}\n\nconst loc = parseLocation(item.location);\nconst sourceMap = { 'indeed': 'indeed', 'seek': 'seek', 'linkedin': 'linkedin', 'email': 'gmail' };\nconst source = sourceMap[(item.source || '').toLowerCase()] || 'other';\n\nconst rawPayload = {\n  job_id: item.job_id,\n  source_email_id: item.source_email_id,\n  received_at: item.received_at,\n  quick_score_reason: item.quick_score_reason\n};\n\nreturn {\n  json: {\n    role_title: item.role_title || '(Untitled Role)',\n    company_name: item.company || '(Unknown Company)',\n    location_city: loc.city,\n    location_state: loc.state,\n    external_source: source,\n    external_url: item.url,\n    salary_text: item.salary_snippet || null,\n    ai_score: item.quick_score,\n    ai_score_reasoning: item.quick_score_reason,\n    score_band: item.score_band,\n    entity_type: item.entity_type,\n    entity_confidence: item.entity_confidence,\n    technical_fit_score: item.technical_fit_score,\n    salary_value_score: item.salary_value_score,\n    commercial_outreach_score: item.commercial_outreach_score,\n    reasoning_flags: JSON.stringify(item.reasoning_flags || []),\n    discovered_at: item.received_at,\n    raw_payload: JSON.stringify(rawPayload)\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1872,
+        96
+      ],
+      "id": "f1eac7e7-8645-4566-ab7a-3384413fde24",
+      "name": "Build Low Insert"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH upserted_company AS (\n  INSERT INTO companies (name, type)\n  VALUES ('{{ $json.company_name.replaceAll(\"'\", \"''\") }}', 'unknown'::company_type)\n  ON CONFLICT (lower(name)) DO UPDATE SET updated_at = now()\n  RETURNING id\n)\nINSERT INTO jobs (\n  role_title,\n  company_id,\n  location_city,\n  location_state,\n  external_source,\n  external_url,\n  salary_text,\n  salary_min,\n  salary_max,\n  ai_score,\n  ai_score_reasoning,\n  score_band,\n  entity_type,\n  entity_confidence,\n  technical_fit_score,\n  salary_value_score,\n  commercial_outreach_score,\n  pain_hypothesis,\n  outreach_angle,\n  inferred_client_name,\n  inferred_client_confidence,\n  recommended_service,\n  recommended_first_action,\n  employee_instruction,\n  relationship_potential,\n  placement_probability,\n  commercial_viability,\n  reasoning_flags,\n  discovered_at,\n  raw_payload,\n  status,\n  discipline\n)\nSELECT\n  '{{ ($json.role_title || '(Untitled)').replaceAll(\"'\", \"''\") }}',\n  uc.id,\n  {{ $json.location_city ? \"'\" + $json.location_city.replaceAll(\"'\", \"''\") + \"'\" : 'NULL' }},\n  {{ $json.location_state ? \"'\" + $json.location_state + \"'::au_state\" : 'NULL' }},\n  '{{ $json.external_source || 'other' }}'::job_source,\n  {{ $json.external_url ? \"'\" + $json.external_url.replaceAll(\"'\", \"''\") + \"'\" : 'NULL' }},\n  {{ $json.salary_text ? \"'\" + $json.salary_text.replaceAll(\"'\", \"''\") + \"'\" : 'NULL' }},\n  {{ $json.salary_min || 'NULL' }},\n  {{ $json.salary_max || 'NULL' }},\n  {{ $json.ai_score || 'NULL' }},\n  {{ $json.ai_score_reasoning ? \"'\" + $json.ai_score_reasoning.replaceAll(\"'\", \"''\") + \"'\" : 'NULL' }},\n  '{{ $json.score_band || 'unscored' }}'::score_band_new,\n  '{{ $json.entity_type || 'unknown' }}'::entity_type,\n  {{ $json.entity_confidence || 'NULL' }},\n  {{ $json.technical_fit_score || 'NULL' }},\n  {{ $json.salary_value_score || 'NULL' }},\n  {{ $json.commercial_outreach_score || 'NULL' }},\n  {{ $json.pain_hypothesis ? \"'\" + $json.pain_hypothesis.replaceAll(\"'\", \"''\") + \"'\" : 'NULL' }},\n  {{ $json.outreach_angle ? \"'\" + $json.outreach_angle.replaceAll(\"'\", \"''\") + \"'\" : 'NULL' }},\n  {{ $json.inferred_client_name ? \"'\" + $json.inferred_client_name.replaceAll(\"'\", \"''\") + \"'\" : 'NULL' }},\n  {{ $json.inferred_client_confidence || 'NULL' }},\n  '{{ $json.recommended_service || 'unknown' }}'::recommended_service,\n  {{ $json.recommended_first_action ? \"'\" + $json.recommended_first_action.replaceAll(\"'\", \"''\") + \"'\" : 'NULL' }},\n  {{ $json.employee_instruction ? \"'\" + $json.employee_instruction.replaceAll(\"'\", \"''\") + \"'\" : 'NULL' }},\n  {{ $json.relationship_potential || 'NULL' }},\n  {{ $json.placement_probability || 'NULL' }},\n  {{ $json.commercial_viability || 'NULL' }},\n  '{{ $json.reasoning_flags || '[]' }}'::jsonb,\n  '{{ $json.discovered_at }}'::timestamptz,\n  '{{ ($json.raw_payload || '{}').replaceAll(\"'\", \"''\") }}'::jsonb,\n  'new'::job_status,\n  {{ $json.discipline ? \"'\" + $json.discipline.replaceAll(\"'\", \"''\") + \"'\" : 'NULL' }}\nFROM upserted_company uc\nON CONFLICT (external_url) DO NOTHING\nRETURNING id, role_title;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        3456,
+        -96
+      ],
+      "id": "8a96c3b4-8dc8-4b46-9097-25c99886881e",
+      "name": "Insert Job (Hot)",
+      "credentials": {
+        "postgres": {
+          "id": "L0vyYcptHSKAktYl",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH company_upsert AS (\n  SELECT upsert_company('{{ ($json.company_name || '').replaceAll(\"'\", \"''\") }}') AS company_id\n)\nINSERT INTO jobs (\n  company_id,\n  role_title,\n  location_city,\n  location_state,\n  external_source,\n  external_url,\n  salary_text,\n  ai_score,\n  ai_score_reasoning,\n  score_band,\n  entity_type,\n  entity_confidence,\n  technical_fit_score,\n  salary_value_score,\n  commercial_outreach_score,\n  reasoning_flags,\n  discovered_at,\n  raw_payload,\n  status\n)\nSELECT\n  (SELECT company_id FROM company_upsert),\n  '{{ ($json.role_title || '').replaceAll(\"'\", \"''\") }}',\n  {{ $json.location_city ? \"'\" + $json.location_city.replaceAll(\"'\", \"''\") + \"'\" : 'NULL' }},\n  {{ $json.location_state ? \"'\" + $json.location_state.replaceAll(\"'\", \"''\") + \"'::au_state\" : 'NULL' }},\n  '{{ $json.external_source }}'::job_source,\n  '{{ ($json.external_url || '').replaceAll(\"'\", \"''\") }}',\n  {{ $json.salary_text ? \"'\" + $json.salary_text.replaceAll(\"'\", \"''\") + \"'\" : 'NULL' }},\n  {{ $json.ai_score || 'NULL' }},\n  '{{ ($json.ai_score_reasoning || '').replaceAll(\"'\", \"''\") }}',\n  '{{ $json.score_band }}'::score_band_new,\n  '{{ $json.entity_type }}'::entity_type,\n  {{ $json.entity_confidence || 'NULL' }},\n  {{ $json.technical_fit_score || 'NULL' }},\n  {{ $json.salary_value_score || 'NULL' }},\n  {{ $json.commercial_outreach_score || 'NULL' }},\n  '{{ ($json.reasoning_flags || '[]').replaceAll(\"'\", \"''\") }}'::jsonb,\n  '{{ $json.discovered_at }}'::timestamptz,\n  '{{ ($json.raw_payload || '{}').replaceAll(\"'\", \"''\") }}'::jsonb,\n  'new'::job_status\nON CONFLICT (external_url) DO NOTHING\nRETURNING id, role_title;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2112,
+        96
+      ],
+      "id": "201d09ca-41e8-4a5f-b279-e567a5e7ca34",
+      "name": "Insert Job (Low)",
+      "credentials": {
+        "postgres": {
+          "id": "L0vyYcptHSKAktYl",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "DELETE FROM jobs\nWHERE discovered_at < now() - interval '4 days'\n  AND claimed_by IS NULL\n  AND status = 'new'\n  AND notes IS NULL\n  AND followup_notes IS NULL\n  AND outcome_notes IS NULL\n  AND NOT EXISTS (SELECT 1 FROM job_artefacts WHERE job_id = jobs.id)\nRETURNING id, role_title, discovered_at;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        3952,
+        -96
+      ],
+      "id": "10a6a1a1-1048-4aad-845e-5e0790d1d020",
+      "name": "Cleanup Stale Jobs",
+      "credentials": {
+        "postgres": {
+          "id": "L0vyYcptHSKAktYl",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Extract Email Body",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Email Body": {
+      "main": [
+        [
+          {
+            "node": "Build Split Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Split Prompt": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request: Split Digest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request: Split Digest": {
+      "main": [
+        [
+          {
+            "node": "Parse Split Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Split Response": {
+      "main": [
+        [
+          {
+            "node": "Build Quick Score Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Quick Score Prompt": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request: Quick Score",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request: Quick Score": {
+      "main": [
+        [
+          {
+            "node": "Parse Quick Score",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Quick Score": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Normalize URL",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Low Insert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Job URL": {
+      "main": [
+        [
+          {
+            "node": "Extract Job Page Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Job Page Text": {
+      "main": [
+        [
+          {
+            "node": "Build Deep Extract Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize URL": {
+      "main": [
+        [
+          {
+            "node": "Fetch Job URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Deep Extract Prompt": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request: Deep Extract",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request: Deep Extract": {
+      "main": [
+        [
+          {
+            "node": "Parse Deep Extract",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Deep Extract": {
+      "main": [
+        [
+          {
+            "node": "Build Hot Insert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Hot Insert": {
+      "main": [
+        [
+          {
+            "node": "Insert Job (Hot)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Low Insert": {
+      "main": [
+        [
+          {
+            "node": "Insert Job (Low)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert Job (Hot)": {
+      "main": [
+        [
+          {
+            "node": "Hot Job: Send a Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert Job (Low)": {
+      "main": [
+        [
+          {
+            "node": "Low Priority Jobs Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hot Job: Send a Message": {
+      "main": [
+        [
+          {
+            "node": "Cleanup Stale Jobs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "e2302d8c-782c-46ab-b8da-7afae4f49e33",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "57e798982e6bf4b80a56018c89d17be43990bc8bf115b72cc422eaf427c1606e"
+  },
+  "id": "dvLB9StDWOodAJAQ",
+  "tags": []
+}

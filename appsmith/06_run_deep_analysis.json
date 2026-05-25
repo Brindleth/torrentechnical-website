@@ -1,0 +1,307 @@
+{
+  "name": "06_run_deep_analysis",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "run-deep-analysis",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "c4462874-5234-401e-a3b8-36c98e753d73",
+      "name": "Webhook",
+      "webhookId": "64ee65be-57d8-4804-86fd-c87b4460bd5d"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n  j.id,\n  j.role_title,\n  c.name AS company_name,\n  j.location_city,\n  j.location_state,\n  j.external_source,\n  j.external_url,\n  j.salary_text,\n  j.ai_score,\n  j.score_band::text AS score_band,\n  j.entity_type::text AS entity_type,\n  j.entity_confidence,\n  j.technical_fit_score,\n  j.salary_value_score,\n  j.commercial_outreach_score,\n  j.ai_score_reasoning,\n  j.reasoning_flags\nFROM jobs j\nLEFT JOIN companies c ON c.id = j.company_id\nWHERE j.id = '{{ $json.body.job_id }}'::uuid;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        208,
+        0
+      ],
+      "id": "c0e8e9b4-0857-498a-878f-cc6c1a8e6948",
+      "name": "Fetch Job Record",
+      "credentials": {
+        "postgres": {
+          "id": "L0vyYcptHSKAktYl",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const item = $input.item.json;\nlet url = item.external_url;\nif (!url) {\n  return { json: { ...item, url: null, fetched_ok: false } };\n}\n// Ensure it has scheme\nif (!url.startsWith('http')) url = 'https://' + url;\nreturn { json: { ...item, url } };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "b875b66e-a2c4-4398-a0b0-d5698a66aaf8",
+      "name": "Normalize URL"
+    },
+    {
+      "parameters": {
+        "url": "=={{ $json.url }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        624,
+        0
+      ],
+      "id": "28778109-7a66-4239-b5c7-cee6e6dd9d4b",
+      "name": "HTTP Request",
+      "retryOnFail": false,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const item = $input.item.json;\nconst prev = $('Fetch Job Record').item.json;\n\nlet pageText = '';\nif (typeof item.data === 'string') {\n  pageText = item.data\n    .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n    .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n    .replace(/<[^>]*>/g, ' ')\n    .replace(/&#39;|&apos;/g, \"'\")\n    .replace(/&quot;/g, '\"')\n    .replace(/&amp;/g, '&')\n    .replace(/&lt;/g, '<')\n    .replace(/&gt;/g, '>')\n    .replace(/&nbsp;/g, ' ')\n    .replace(/\\s+/g, ' ')\n    .trim()\n    .substring(0, 12000);\n}\n\nreturn {\n  json: {\n    ...prev,\n    page_text: pageText,\n    fetched_ok: pageText.length > 200\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        832,
+        0
+      ],
+      "id": "a6060675-1179-4d2a-b644-898564011017",
+      "name": "Extract Job Page Text"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.item.json;\n\nconst prompt = `You are a senior recruitment business development analyst at Torren Technical, an engineer-led Australian technical recruitment firm. You have a job posting (quick score ${item.ai_score}/15, ${item.score_band}, entity_type=${item.entity_type}). Your job: produce decision-grade commercial intelligence so a recruiter can pick up the phone within minutes.\n\nRETURN ONLY valid JSON. No markdown. Exact structure:\n\n{\n  \"full_description\": \"2-4 sentences on the role in your own words\",\n  \"key_requirements\": [\"concise\", \"must-haves\"],\n  \"nice_to_haves\": [\"concise\", \"preferreds\"],\n  \"company_blurb\": \"1-2 sentences on what the company does, or null if unclear\",\n  \"company_size_hint\": \"SME | mid-size | large | agency | unknown\",\n  \"hiring_contact_name\": \"name if explicitly stated, else null\",\n  \"hiring_contact_email\": \"email if explicitly stated, else null\",\n  \"fifo\": \"yes | no | unclear\",\n  \"contract_type\": \"permanent | contract | casual | fixed-term | unclear\",\n  \"salary_clarified\": \"best salary string available\",\n  \"salary_min\": null,\n  \"salary_max\": null,\n  \"inferred_client_name\": null,\n  \"inferred_client_confidence\": 1,\n  \"pain_hypothesis\": \"1 sentence: what problem is the lister trying to solve by hiring this role\",\n  \"outreach_angle\": \"1 sentence: how a Torren Technical recruiter could open a relevant conversation\",\n  \"recommended_service\": \"retainer_search | per_shortlist_search | contingent_recruitment | recruiter_sourcing_support | do_not_pursue\",\n  \"recommended_first_action\": \"the single most useful first action a recruiter should take\",\n  \"employee_instruction\": \"specific call script opener for the recruiter\",\n  \"relationship_potential\": 1,\n  \"placement_probability\": 1,\n  \"commercial_viability\": 1,\n  \"additional_flags\": []\n}\n\nCONTEXT FROM EARLIER SCORING:\nRole: ${item.role_title}\nCompany: ${item.company_name}\nLocation: ${[item.location_city, item.location_state].filter(Boolean).join(', ')}\nSource: ${item.external_source}\nSalary text: ${item.salary_text || 'unknown'}\nQuick score reasoning: ${item.ai_score_reasoning || 'none'}\n\nJOB PAGE TEXT (may be empty or partial):\n${item.page_text || 'No fresh page text available - rely on context above.'}`;\n\nreturn [{\n  json: {\n    ...item,\n    de_model: 'claude-haiku-4-5',\n    de_max_tokens: 2048,\n    de_prompt: prompt\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1040,
+        0
+      ],
+      "id": "606dd8bd-3ad0-4da6-9042-5c39d0597491",
+      "name": "Build Deep Extract Prompt"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "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"
+            },
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { \"model\": $json.de_model, \"max_tokens\": $json.de_max_tokens, \"messages\": [{ \"role\": \"user\", \"content\": $json.de_prompt }] } }}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 1500
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1248,
+        0
+      ],
+      "id": "628fbb4e-788a-4d91-bfe7-dc9685d3895d",
+      "name": "HTTP Request: Deep Extract"
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.item.json;\nconst upstream = $('Fetch Job Record').item.json;\nconst content = response.content?.[0]?.text || '';\n\nlet extracted = {};\ntry {\n  const cleaned = content.replace(/```json\\n?/g, '').replace(/```\\n?/g, '').trim();\n  extracted = JSON.parse(cleaned);\n} catch (e) {\n  extracted = { error: 'parse failed' };\n}\n\nfunction clampInt(v, min, max) {\n  if (v === null || v === undefined || v === '') return null;\n  const n = parseInt(v);\n  if (isNaN(n)) return null;\n  return Math.min(max, Math.max(min, n));\n}\n\nfunction intOrNull(v) {\n  if (v === null || v === undefined || v === '') return null;\n  const n = parseInt(v);\n  return isNaN(n) ? null : n;\n}\n\nreturn {\n  json: {\n    job_id: upstream.id,\n    pain_hypothesis: extracted.pain_hypothesis || null,\n    outreach_angle: extracted.outreach_angle || null,\n    entity_type: upstream.entity_type,  // keep existing — don't downgrade\n    recommended_service: extracted.recommended_service || 'unknown',\n    recommended_first_action: extracted.recommended_first_action || null,\n    employee_instruction: extracted.employee_instruction || null,\n    inferred_client_name: extracted.inferred_client_name || null,\n    inferred_client_confidence: clampInt(extracted.inferred_client_confidence, 1, 5),\n    relationship_potential: clampInt(extracted.relationship_potential, 1, 5),\n    placement_probability: clampInt(extracted.placement_probability, 1, 5),\n    commercial_viability: clampInt(extracted.commercial_viability, 1, 5),\n    salary_min: intOrNull(extracted.salary_min),\n    salary_max: intOrNull(extracted.salary_max),\n    salary_clarified: extracted.salary_clarified || null\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1456,
+        0
+      ],
+      "id": "ee8e6f19-43d4-4a4c-82ce-c5b32b1fedd7",
+      "name": "Parse Deep Extract"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE jobs\nSET\n  pain_hypothesis = {{ $json.pain_hypothesis ? \"'\" + $json.pain_hypothesis.replaceAll(\"'\", \"''\") + \"'\" : 'NULL' }},\n  outreach_angle = {{ $json.outreach_angle ? \"'\" + $json.outreach_angle.replaceAll(\"'\", \"''\") + \"'\" : 'NULL' }},\n  recommended_service = '{{ $json.recommended_service || 'unknown' }}'::recommended_service,\n  recommended_first_action = {{ $json.recommended_first_action ? \"'\" + $json.recommended_first_action.replaceAll(\"'\", \"''\") + \"'\" : 'NULL' }},\n  employee_instruction = {{ $json.employee_instruction ? \"'\" + $json.employee_instruction.replaceAll(\"'\", \"''\") + \"'\" : 'NULL' }},\n  inferred_client_name = {{ $json.inferred_client_name ? \"'\" + $json.inferred_client_name.replaceAll(\"'\", \"''\") + \"'\" : 'NULL' }},\n  inferred_client_confidence = {{ $json.inferred_client_confidence || 'NULL' }},\n  relationship_potential = {{ $json.relationship_potential || 'NULL' }},\n  placement_probability = {{ $json.placement_probability || 'NULL' }},\n  commercial_viability = {{ $json.commercial_viability || 'NULL' }},\n  salary_min = COALESCE(salary_min, {{ $json.salary_min || 'NULL' }}),\n  salary_max = COALESCE(salary_max, {{ $json.salary_max || 'NULL' }}),\n  salary_text = COALESCE(salary_text, {{ $json.salary_clarified ? \"'\" + $json.salary_clarified.replaceAll(\"'\", \"''\") + \"'\" : 'NULL' }}),\n  updated_at = now()\nWHERE id = '{{ $json.job_id }}'::uuid\nRETURNING id, role_title, pain_hypothesis IS NOT NULL AS analyzed;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1664,
+        0
+      ],
+      "id": "c9060b9a-30d5-41bd-a241-f1f82679c78d",
+      "name": "Update Job with Analysis",
+      "credentials": {
+        "postgres": {
+          "id": "L0vyYcptHSKAktYl",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1872,
+        0
+      ],
+      "id": "208dba7d-5d64-448f-bdcc-ad7eb208c883",
+      "name": "Respond Success"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Fetch Job Record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Job Record": {
+      "main": [
+        [
+          {
+            "node": "Normalize URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize URL": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Extract Job Page Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Job Page Text": {
+      "main": [
+        [
+          {
+            "node": "Build Deep Extract Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Deep Extract Prompt": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request: Deep Extract",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request: Deep Extract": {
+      "main": [
+        [
+          {
+            "node": "Parse Deep Extract",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Deep Extract": {
+      "main": [
+        [
+          {
+            "node": "Update Job with Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Job with Analysis": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "fa213a72-7aa4-4790-a256-ee12f88ac298",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "57e798982e6bf4b80a56018c89d17be43990bc8bf115b72cc422eaf427c1606e"
+  },
+  "id": "YMiBmRByul9MQcCA",
+  "tags": []
+}
