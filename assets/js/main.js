@@ -95,7 +95,11 @@ function bindFormHandler(formId) {
 bindFormHandler('employerForm');
 bindFormHandler('contactForm');
 
-// === Candidate registration form (with file upload + base64) ===
+// === Candidate registration form — Torren API intake (Phase 11A-8B) ===
+// Replaced: JSON+base64 submission to n8n.torrentechnical.com/webhook/candidate-registration
+// New:      multipart/form-data to https://intake.torrentechnical.com/public/candidate-applications
+//
+// ROLLBACK: revert this commit to restore the n8n JSON+base64 path (WF5 stays live throughout)
 const candidateForm = document.getElementById('candidateForm');
 
 if (candidateForm) {
@@ -103,6 +107,7 @@ if (candidateForm) {
   const fileInput = document.getElementById('cv_file');
   const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
+  // File size check on selection (unchanged UX)
   if (fileInput) {
     fileInput.addEventListener('change', () => {
       const file = fileInput.files[0];
@@ -119,20 +124,15 @@ if (candidateForm) {
     });
   }
 
-  function fileToBase64(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const base64 = reader.result.split(',')[1];
-        resolve(base64);
-      };
-      reader.onerror = () => reject(new Error('Failed to read file'));
-      reader.readAsDataURL(file);
-    });
+  function readVal(id) {
+    const el = document.getElementById(id);
+    return el ? el.value.trim() : '';
   }
 
   candidateForm.addEventListener('submit', async (e) => {
     e.preventDefault();
+
+    const ENDPOINT = 'https://intake.torrentechnical.com/public/candidate-applications';
 
     const submitBtn = candidateForm.querySelector('button[type="submit"]');
     const originalText = submitBtn.textContent;
@@ -145,54 +145,85 @@ if (candidateForm) {
     }
 
     try {
-      const formData = new FormData(candidateForm);
-      const payload = {};
+      // ── Read form fields ────────────────────────────────────────────────
+      const firstName        = readVal('first_name');
+      const lastName         = readVal('last_name');
+      const fullName         = [firstName, lastName].filter(Boolean).join(' ');
+      const email            = readVal('email');
+      const phone            = readVal('phone');
+      const location         = readVal('location');
+      const workAuth         = readVal('work_auth');
+      const disciplineSelect = readVal('discipline');
+      const disciplineOther  = readVal('discipline_other');
+      const discipline       = disciplineSelect === 'Other' ? disciplineOther : disciplineSelect;
+      const linkedInUrl      = readVal('linkedin_url');
+      const yearsExperience  = readVal('years_experience');
+      const employedStatus   = readVal('employed_status');
+      const noticePeriod     = readVal('notice_period_weeks');
+      const salary           = readVal('salary_expectation');
+      const motivation       = readVal('summary_self');
+      const cvTextPasted     = readVal('cv_text_pasted');
 
-      const workPrefs = formData.getAll('work_preferences');
-      payload.work_preferences = workPrefs;
-
-      for (const [key, value] of formData.entries()) {
-        if (key === 'work_preferences' || key === 'cv_file') continue;
-        payload[key] = value;
-      }
-
-      if (workPrefs.length === 0) {
+      // Work preferences — checkbox group (at least one required, unchanged UX)
+      const wpChecked = candidateForm.querySelectorAll('input[name="work_preferences"]:checked');
+      if (wpChecked.length === 0) {
         throw new Error('Please select at least one work preference.');
       }
+      const workPreferences = Array.from(wpChecked).map(cb => cb.value).join(',');
 
-      const file = fileInput && fileInput.files[0];
-      if (file) {
-        if (file.size > MAX_FILE_SIZE) {
-          throw new Error(`File too large. Maximum 5MB.`);
-        }
-        if (status) {
-          status.className = 'form-status';
-          status.textContent = 'Encoding CV file…';
-        }
-        payload.cv_base64 = await fileToBase64(file);
-        payload.cv_filename = file.name;
-        payload.cv_mime_type = file.type || 'application/octet-stream';
-      } else {
-        payload.cv_base64 = '';
-        payload.cv_filename = '';
-        payload.cv_mime_type = '';
+      // CV file size check
+      const file = fileInput && fileInput.files[0] ? fileInput.files[0] : null;
+      if (file && file.size > MAX_FILE_SIZE) {
+        throw new Error('File too large. Maximum 5MB.');
       }
 
-      payload.submitted_at = new Date().toISOString();
-      payload.source = window.location.pathname;
+      // ── Build FormData ──────────────────────────────────────────────────
+      const fd = new FormData();
+
+      // Required
+      fd.append('fullName',             fullName);
+      fd.append('email',                email);
+      fd.append('consentPrivacyPolicy', 'true');
+      fd.append('referralSource',       'website');
+
+      // Optional standard fields
+      if (phone)       fd.append('phone',       phone);
+      if (location)    fd.append('location',    location);
+      if (workAuth)    fd.append('workRights',  workAuth);
+      if (discipline)  fd.append('discipline',  discipline);
+      if (linkedInUrl) fd.append('linkedInUrl', linkedInUrl);
+
+      // Supplemental fields — stored in additionalInfo by API
+      if (yearsExperience) fd.append('experience',      yearsExperience);
+      if (employedStatus)  fd.append('employed',        employedStatus);
+      if (noticePeriod)    fd.append('noticePeriod',    noticePeriod);
+      if (salary)          fd.append('salary',          salary);
+      if (motivation)      fd.append('motivation',      motivation);
+      fd.append('workPreferences', workPreferences); // always non-empty (validated above)
+
+      // CV: prefer uploaded file; fall back to pasted text as plain-text blob
+      if (file) {
+        if (status) {
+          status.className = 'form-status';
+          status.textContent = 'Uploading CV…';
+        }
+        fd.append('cv', file, file.name);
+      } else if (cvTextPasted) {
+        const blob = new Blob([cvTextPasted], { type: 'text/plain' });
+        fd.append('cv', blob, 'cv.txt');
+      }
+      // No CV provided → API accepts CV as optional; submission proceeds
 
       if (status) {
         status.className = 'form-status';
         status.textContent = 'Submitting registration…';
       }
 
-      const response = await fetch(candidateForm.action, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
+      // Do NOT set Content-Type — browser sets multipart/form-data + boundary automatically
+      const response = await fetch(ENDPOINT, { method: 'POST', body: fd });
 
       if (response.ok) {
+        // Reset discipline-other visibility (unchanged)
         const discOther = document.getElementById('disciplineOtherWrap');
         if (discOther) discOther.style.display = 'none';
 
