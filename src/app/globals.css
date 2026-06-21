@@ -1,0 +1,190 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-display: 'Inter Tight', 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  /* Brand tokens (mirrors torrentechnical.com) */
+  --bg-deep: #0a1320;
+  --bg-dark: #0f1b2d;
+  --accent: #c9a961;
+  --accent-light: #ddc07c;
+  --accent-deep: #b8983f;
+  --accent-glow: rgba(201, 169, 97, 0.18);
+  --grid-line: rgba(201, 169, 97, 0.07);
+  --hairline: rgba(255, 255, 255, 0.06);
+}
+
+* {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+html,
+body {
+  background-color: #0a1320;
+  color: #ffffff;
+  font-family: var(--font-sans);
+  /* `clip` (not `hidden`) prevents the body becoming a scroll container,
+     which would break `position: sticky` on the pinned 3D sections. */
+  overflow-x: clip;
+}
+
+body {
+  margin: 0;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+}
+
+/* Lenis */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+::selection {
+  background: rgba(201, 169, 97, 0.28);
+  color: #ffffff;
+}
+
+::-webkit-scrollbar {
+  width: 9px;
+}
+::-webkit-scrollbar-track {
+  background: #0a1320;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e2a3f;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #2a3954;
+}
+
+@layer components {
+  /* Mono technical spec label — matches site's .spec-label */
+  .spec-label {
+    @apply font-mono text-[0.7rem] uppercase tracking-[0.3em] text-gold;
+  }
+
+  /* Frosted glass panel over navy */
+  .glass {
+    background: linear-gradient(
+      155deg,
+      rgba(26, 40, 65, 0.55),
+      rgba(15, 27, 45, 0.4)
+    );
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+  }
+
+  .glass-hover {
+    transition: border-color 0.45s ease, transform 0.45s ease,
+      box-shadow 0.45s ease, background 0.45s ease;
+  }
+  .glass-hover:hover {
+    border-color: rgba(201, 169, 97, 0.45);
+    box-shadow: 0 0 50px -16px rgba(201, 169, 97, 0.5);
+    transform: translateY(-3px);
+  }
+
+  /* Primary CTA — gold */
+  .btn-primary {
+    @apply relative inline-flex items-center gap-2 px-7 py-3.5 font-mono text-xs uppercase tracking-[0.2em] text-navy-deep overflow-hidden;
+    background: linear-gradient(135deg, #ddc07c, #c9a961 45%, #b8983f);
+    border: 1px solid rgba(221, 192, 124, 0.6);
+    transition: box-shadow 0.4s ease, transform 0.3s ease;
+  }
+  .btn-primary:hover {
+    box-shadow: 0 0 38px -6px rgba(201, 169, 97, 0.75);
+    transform: translateY(-1px);
+  }
+
+  /* Ghost CTA */
+  .btn-ghost {
+    @apply relative inline-flex items-center gap-2 px-7 py-3.5 font-mono text-xs uppercase tracking-[0.2em] text-white;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    background: rgba(255, 255, 255, 0.02);
+    transition: all 0.4s ease;
+  }
+  .btn-ghost:hover {
+    border-color: rgba(201, 169, 97, 0.65);
+    color: #ddc07c;
+    background: rgba(201, 169, 97, 0.06);
+  }
+
+  .corner-bracket {
+    position: relative;
+  }
+  .corner-bracket::before,
+  .corner-bracket::after {
+    content: '';
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border-color: rgba(201, 169, 97, 0.55);
+    border-style: solid;
+  }
+  .corner-bracket::before {
+    top: 0;
+    left: 0;
+    border-width: 1px 0 0 1px;
+  }
+  .corner-bracket::after {
+    bottom: 0;
+    right: 0;
+    border-width: 0 1px 1px 0;
+  }
+}
+
+@layer utilities {
+  .text-glow {
+    text-shadow: 0 0 28px rgba(201, 169, 97, 0.5);
+  }
+  .bg-grid {
+    background-image: linear-gradient(
+        to right,
+        var(--grid-line) 1px,
+        transparent 1px
+      ),
+      linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+    background-size: 64px 64px;
+  }
+  .bg-radial-fade {
+    background: radial-gradient(ellipse at center, transparent 0%, #0a1320 78%);
+  }
+  .gold-rule {
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(201, 169, 97, 0.6),
+      transparent
+    );
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

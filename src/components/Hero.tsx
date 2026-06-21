@@ -1,0 +1,187 @@
+'use client';
+
+import { motion } from 'framer-motion';
+import { HERO_STATS } from '@/lib/content';
+
+const HEADLINE = [
+  'A technical consultancy',
+  'for engineering, construction',
+  'and industrial trades.',
+];
+
+export default function Hero() {
+  return (
+    <section id="top" className="relative h-screen">
+      <div className="sticky top-0 h-screen w-full overflow-hidden">
+        <div className="absolute inset-0 bg-navy-deep">
+          <video
+            className="h-full w-full object-cover opacity-90"
+            autoPlay
+            muted
+            loop
+            playsInline
+            poster="/hero-poster.jpg"
+          >
+            <source src="/hero.mp4" type="video/mp4" />
+          </video>
+          <div className="pointer-events-none absolute inset-0 bg-navy-deep/25" />
+        </div>
+
+        {/* Overlays */}
+        <div className="bg-grid pointer-events-none absolute inset-0 opacity-50" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-navy-deep/70 via-transparent to-navy-deep" />
+        <div className="pointer-events-none absolute inset-0 bg-radial-fade" />
+
+        <HudCorners />
+
+        {/* Content */}
+        <div className="relative z-10 flex h-full flex-col justify-center px-6 md:px-10 lg:px-16">
+          <div className="mx-auto w-full max-w-[1400px]">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3, duration: 0.8 }}
+              className="mb-5 flex flex-wrap items-center gap-3"
+            >
+              <Chip>AU · TECHNICAL CONSULTANCY</Chip>
+              <Chip>EST. 2026</Chip>
+              <span className="spec-label">Technical Consultancy · Australia</span>
+            </motion.div>
+
+            <h1 className="max-w-4xl font-display text-[2.4rem] font-semibold leading-[1.02] tracking-tight sm:text-5xl lg:text-6xl xl:text-[4.4rem]">
+              {HEADLINE.map((line, i) => (
+                <BlueprintLine
+                  key={line}
+                  text={line}
+                  delay={0.4 + i * 0.18}
+                  highlight={i === HEADLINE.length - 1}
+                />
+              ))}
+            </h1>
+
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1.2, duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+              className="mt-7 max-w-2xl text-base leading-relaxed text-white/70 md:text-lg"
+            >
+              A technical consultancy for Australian industry — workforce
+              solutions across engineering, construction, industrial trades
+              and more. We understand the work, so the right people and the
+              right detail follow.
+            </motion.p>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1.4, duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+              className="mt-9 flex flex-wrap items-center gap-4"
+            >
+              <a href="#engage" className="btn-primary">
+                Talk to our team
+                <Arrow />
+              </a>
+              <a href="#engage" className="btn-ghost">
+                Join the talent network
+              </a>
+            </motion.div>
+
+            {/* Stat strip */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1.6, duration: 0.9 }}
+              className="mt-12 grid max-w-3xl grid-cols-2 gap-px overflow-hidden border border-white/10 bg-white/5 sm:grid-cols-4"
+            >
+              {HERO_STATS.map((s) => (
+                <div key={s.label} className="bg-navy-deep/60 px-5 py-4">
+                  <div className="font-display text-2xl font-semibold text-gold md:text-3xl">
+                    {s.num}
+                  </div>
+                  <div className="mt-1 font-mono text-[0.6rem] uppercase tracking-[0.14em] text-white/55">
+                    {s.label}
+                  </div>
+                </div>
+              ))}
+            </motion.div>
+          </div>
+        </div>
+
+        {/* Scroll indicator */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 2, duration: 1 }}
+          className="absolute bottom-7 left-1/2 flex -translate-x-1/2 flex-col items-center gap-2"
+        >
+          <span className="font-mono text-[0.6rem] uppercase tracking-[0.3em] text-white/40">
+            Scroll to assemble
+          </span>
+          <div className="h-10 w-px overflow-hidden bg-white/15">
+            <motion.div
+              animate={{ y: ['-100%', '100%'] }}
+              transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+              className="h-1/2 w-full bg-gold"
+            />
+          </div>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+function Chip({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="border border-gold/40 px-2.5 py-1 font-mono text-[0.6rem] uppercase tracking-[0.2em] text-gold/90">
+      {children}
+    </span>
+  );
+}
+
+function BlueprintLine({
+  text,
+  delay,
+  highlight,
+}: {
+  text: string;
+  delay: number;
+  highlight?: boolean;
+}) {
+  return (
+    <span className="relative block overflow-hidden py-0.5">
+      <motion.span
+        initial={{ y: '110%', opacity: 0, filter: 'blur(8px)' }}
+        animate={{ y: '0%', opacity: 1, filter: 'blur(0px)' }}
+        transition={{ delay, duration: 1, ease: [0.16, 1, 0.3, 1] }}
+        className={`block ${highlight ? 'text-gold text-glow' : 'text-white'}`}
+      >
+        {text}
+      </motion.span>
+    </span>
+  );
+}
+
+function HudCorners() {
+  return (
+    <div className="pointer-events-none absolute inset-0 hidden md:block">
+      <div className="absolute right-6 top-24 text-right font-mono text-[0.6rem] uppercase tracking-[0.25em] text-white/40">
+        <div>LAT -31.95 · LON 115.86</div>
+        <div className="text-gold/70">PERTH · WA</div>
+      </div>
+    </div>
+  );
+}
+
+function Arrow() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+      <path
+        d="M2 8h11M9 4l4 4-4 4"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}

@@ -1,0 +1,10 @@
+# Legacy multi-page URLs → single-page anchors on the new site
+/index.html        /              301
+/home              /              301
+/about.html        /#why          301
+/employers.html    /#engage       301
+/candidates.html   /#engage       301
+/contact.html      /#engage       301
+/services          /#capabilities 301
+/register          /#engage       301
+/hire              /#engage       301

@@ -1,0 +1,16 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "torren-3d",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "--prefix",
+        "C:\\Users\\Matth\\OneDrive\\Documents\\Torren Technical 3D Website Live",
+        "run",
+        "dev"
+      ],
+      "port": 3000
+    }
+  ]
+}
