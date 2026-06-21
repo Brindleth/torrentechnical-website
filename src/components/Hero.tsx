@@ -11,8 +11,8 @@ const HEADLINE = [
 
 export default function Hero() {
   return (
-    <section id="top" className="relative h-screen">
-      <div className="sticky top-0 h-screen w-full overflow-hidden">
+    <section id="top" className="relative min-h-screen">
+      <div className="relative min-h-screen w-full overflow-hidden">
         <div className="absolute inset-0 bg-navy-deep">
           <video
             className="h-full w-full object-cover opacity-90"
@@ -20,7 +20,6 @@ export default function Hero() {
             muted
             loop
             playsInline
-            poster="/hero-poster.jpg"
           >
             <source src="/hero.mp4" type="video/mp4" />
           </video>
@@ -35,7 +34,7 @@ export default function Hero() {
         <HudCorners />
 
         {/* Content */}
-        <div className="relative z-10 flex h-full flex-col justify-center px-6 md:px-10 lg:px-16">
+        <div className="relative z-10 flex min-h-screen flex-col justify-start px-6 pt-28 pb-20 md:justify-center md:px-10 md:pt-20 lg:px-16">
           <div className="mx-auto w-full max-w-[1400px]">
             <motion.div
               initial={{ opacity: 0 }}
