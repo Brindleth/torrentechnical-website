@@ -31,7 +31,7 @@ export default function Navbar() {
           <span className="flex h-9 w-9 items-center justify-center border border-gold/50 bg-gold/10 font-display text-lg font-bold text-gold transition-colors group-hover:bg-gold/20">
             T
           </span>
-          <span className="font-display text-sm font-semibold tracking-tight text-white">
+          <span className="font-display text-sm font-semibold uppercase tracking-[0.14em] text-white">
             Torren Technical
           </span>
         </a>
