@@ -1,6 +1,4 @@
-'use client';
-
-import { motion } from 'framer-motion';
+import Reveal from '@/components/ui/Reveal';
 import { WHY_FEATURES } from '@/lib/content';
 
 export default function WhySection() {
@@ -11,32 +9,22 @@ export default function WhySection() {
         <div className="grid gap-12 lg:grid-cols-2 lg:gap-20">
           {/* Left — narrative */}
           <div>
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-80px' }}
-              transition={{ duration: 0.6 }}
-              className="mb-5 flex items-center gap-3"
-            >
+            <Reveal className="mb-5 flex items-center gap-3">
               <span className="h-px w-8 bg-gold/70" />
               <span className="spec-label">004 · Why Torren Technical</span>
-            </motion.div>
-            <motion.h2
-              initial={{ opacity: 0, y: 24 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-80px' }}
-              transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+            </Reveal>
+            <Reveal
+              as="h2"
+              delay={0.05}
               className="font-display text-3xl font-semibold leading-[1.05] tracking-tight text-white sm:text-4xl lg:text-5xl"
             >
               A focused technical
               <br />
               <span className="text-gold text-glow">consultancy.</span>
-            </motion.h2>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-80px' }}
-              transition={{ duration: 0.7, delay: 0.1 }}
+            </Reveal>
+            <Reveal
+              as="div"
+              delay={0.1}
               className="mt-6 space-y-4 text-base leading-relaxed text-white/65"
             >
               <p>
@@ -50,19 +38,17 @@ export default function WhySection() {
                 end-to-end before we act, and people are assessed against the
                 specification — not the keywords.
               </p>
-            </motion.div>
+            </Reveal>
           </div>
 
           {/* Right — feature list */}
           <div className="lg:pt-16">
             <ul className="space-y-px overflow-hidden border border-white/10">
               {WHY_FEATURES.map((f, i) => (
-                <motion.li
+                <Reveal
+                  as="li"
                   key={f.title}
-                  initial={{ opacity: 0, x: 20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true, margin: '-40px' }}
-                  transition={{ duration: 0.5, delay: i * 0.07, ease: [0.16, 1, 0.3, 1] }}
+                  delay={i * 0.06}
                   className="group flex gap-4 bg-white/[0.02] p-5 transition-colors hover:bg-gold/[0.05]"
                 >
                   <span className="mt-1 font-mono text-xs text-gold/70">
@@ -74,7 +60,7 @@ export default function WhySection() {
                     </strong>{' '}
                     {f.body}
                   </p>
-                </motion.li>
+                </Reveal>
               ))}
             </ul>
           </div>

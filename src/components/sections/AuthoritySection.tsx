@@ -1,6 +1,4 @@
-'use client';
-
-import { motion } from 'framer-motion';
+import Reveal from '@/components/ui/Reveal';
 import { CREDENTIALS } from '@/lib/content';
 
 export default function AuthoritySection() {
@@ -18,32 +16,23 @@ export default function AuthoritySection() {
         }}
       />
       <div className="relative mx-auto max-w-[1400px] px-6 md:px-10">
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-80px' }}
-          transition={{ duration: 0.6 }}
-          className="mb-5 flex items-center gap-3"
-        >
+        <Reveal className="mb-5 flex items-center gap-3">
           <span className="h-px w-8 bg-gold/70" />
           <span className="spec-label">003 · Technical Authority</span>
-        </motion.div>
+        </Reveal>
 
-        <motion.h2
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-80px' }}
-          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+        <Reveal
+          as="h2"
+          delay={0.05}
           className="font-display text-3xl font-semibold leading-[1.05] tracking-tight text-white sm:text-4xl lg:text-5xl"
         >
-          Technical depth. <span className="text-gold text-glow">Screened to the spec.</span>
-        </motion.h2>
+          Technical depth.{' '}
+          <span className="text-gold text-glow">Screened to the spec.</span>
+        </Reveal>
 
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-80px' }}
-          transition={{ duration: 0.7, delay: 0.1 }}
+        <Reveal
+          as="p"
+          delay={0.1}
           className="mt-5 max-w-[64ch] text-base leading-relaxed text-white/65 md:text-lg"
         >
           Specialist technical roles are easy to fill badly — a keyword match is
@@ -51,16 +40,13 @@ export default function AuthoritySection() {
           industry backgrounds across engineering, construction and the trades,
           so every brief is assessed against the specification, the standards and
           the operational risk.
-        </motion.p>
+        </Reveal>
 
         <div className="mt-16 grid gap-px overflow-hidden border border-white/10 bg-white/5 sm:grid-cols-2 lg:grid-cols-4">
           {CREDENTIALS.map((c, i) => (
-            <motion.div
+            <Reveal
               key={c.label}
-              initial={{ opacity: 0, y: 24, filter: 'blur(6px)' }}
-              whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-              viewport={{ once: true, margin: '-60px' }}
-              transition={{ duration: 0.6, delay: i * 0.1, ease: [0.16, 1, 0.3, 1] }}
+              delay={i * 0.08}
               className="group relative overflow-hidden bg-navy-deep/70 p-7"
             >
               <div className="pointer-events-none absolute inset-0 overflow-hidden opacity-0 transition-opacity duration-500 group-hover:opacity-100">
@@ -79,7 +65,7 @@ export default function AuthoritySection() {
               <div className="mt-3 text-sm leading-relaxed text-white/70">
                 {c.label}
               </div>
-            </motion.div>
+            </Reveal>
           ))}
         </div>
       </div>

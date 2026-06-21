@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, type FormEvent, type ReactNode } from 'react';
-import { motion } from 'framer-motion';
+import Reveal from '@/components/ui/Reveal';
 
 /* Endpoints + field options mirror the original torrentechnical.com forms exactly. */
 const EMPLOYER_WEBHOOK =
@@ -104,17 +104,14 @@ export default function EngageSection() {
             <span className="h-px w-8 bg-gold/70" />
             <span className="spec-label">005 · Engage</span>
           </div>
-          <motion.h2
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-60px' }}
-            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          <Reveal
+            as="h2"
             className="font-display text-3xl font-semibold leading-[1.05] tracking-tight text-white sm:text-4xl lg:text-5xl"
           >
             Work with a technical team
             <br />
             <span className="text-gold text-glow">that reads the spec.</span>
-          </motion.h2>
+          </Reveal>
           <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-white/65 md:text-lg">
             Send us a brief, a position description or a rough scope and we will
             respond with an honest assessment — and a shortlist within five
@@ -172,17 +169,7 @@ function useSubmit(action: string) {
 }
 
 function Card({ children }: { children: ReactNode }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 24 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-60px' }}
-      transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-      className="glass corner-bracket p-7 md:p-10"
-    >
-      {children}
-    </motion.div>
-  );
+  return <Reveal className="glass corner-bracket p-7 md:p-10">{children}</Reveal>;
 }
 
 function Sent({ children }: { children: ReactNode }) {

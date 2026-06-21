@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { NAV_LINKS } from '@/lib/content';
 
 export default function Navbar() {
@@ -16,10 +15,7 @@ export default function Navbar() {
   }, []);
 
   return (
-    <motion.header
-      initial={{ y: -80, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
+    <header
       className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 ${
         scrolled
           ? 'border-b border-line-dark/60 bg-navy-deep/75 backdrop-blur-xl'
@@ -60,6 +56,7 @@ export default function Navbar() {
 
         <button
           aria-label="Toggle navigation"
+          aria-expanded={open}
           onClick={() => setOpen((o) => !o)}
           className="flex flex-col gap-1.5 p-2 md:hidden"
         >
@@ -69,38 +66,35 @@ export default function Navbar() {
         </button>
       </nav>
 
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-            className="overflow-hidden border-t border-line-dark/60 bg-navy-deep/95 backdrop-blur-xl md:hidden"
-          >
-            <div className="flex flex-col gap-1 px-6 py-6">
-              {NAV_LINKS.map((l) => (
-                <a
-                  key={l.href}
-                  href={l.href}
-                  onClick={() => setOpen(false)}
-                  className="border-b border-line-dark/40 py-3 font-mono text-sm uppercase tracking-[0.2em] text-white/70"
-                >
-                  {l.label}
-                </a>
-              ))}
-              <div className="mt-4 flex flex-col gap-3">
-                <a href="#engage" onClick={() => setOpen(false)} className="btn-ghost justify-center">
-                  Join network
-                </a>
-                <a href="#engage" onClick={() => setOpen(false)} className="btn-primary justify-center">
-                  Talk to us
-                </a>
-              </div>
+      {/* Mobile menu — CSS grid-rows collapse (no JS animation lib) */}
+      <div
+        className={`grid overflow-hidden border-line-dark/60 bg-navy-deep/95 backdrop-blur-xl transition-[grid-template-rows] duration-300 ease-out md:hidden ${
+          open ? 'grid-rows-[1fr] border-t' : 'grid-rows-[0fr]'
+        }`}
+      >
+        <div className="min-h-0 overflow-hidden">
+          <div className="flex flex-col gap-1 px-6 py-6">
+            {NAV_LINKS.map((l) => (
+              <a
+                key={l.href}
+                href={l.href}
+                onClick={() => setOpen(false)}
+                className="border-b border-line-dark/40 py-3 font-mono text-sm uppercase tracking-[0.2em] text-white/70"
+              >
+                {l.label}
+              </a>
+            ))}
+            <div className="mt-4 flex flex-col gap-3">
+              <a href="#engage" onClick={() => setOpen(false)} className="btn-ghost justify-center">
+                Join network
+              </a>
+              <a href="#engage" onClick={() => setOpen(false)} className="btn-primary justify-center">
+                Talk to us
+              </a>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.header>
+          </div>
+        </div>
+      </div>
+    </header>
   );
 }

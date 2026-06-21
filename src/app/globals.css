@@ -37,6 +37,51 @@ body {
   margin: 0;
 }
 
+/* Native smooth scrolling for in-page anchors (replaces Lenis JS) */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Scroll-reveal: IntersectionObserver-driven, transform + opacity only */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal.revealed {
+  opacity: 1;
+  transform: none;
+}
+
+/* Hero scroll cue (composited transform animation) */
+.hero-cue {
+  animation: heroCue 1.8s ease-in-out infinite;
+}
+@keyframes heroCue {
+  0%,
+  100% {
+    transform: translateY(-100%);
+  }
+  50% {
+    transform: translateY(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .hero-cue {
+    animation: none;
+  }
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
 h1,
 h2,
 h3,

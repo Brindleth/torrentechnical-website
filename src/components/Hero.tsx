@@ -1,12 +1,10 @@
-'use client';
-
-import { motion } from 'framer-motion';
 import { HERO_STATS } from '@/lib/content';
+import HeroVideo from '@/components/HeroVideo';
 
 const HEADLINE = [
-  'A technical consultancy',
-  'for engineering, construction',
-  'and industrial trades.',
+  { text: 'A technical consultancy' },
+  { text: 'for engineering, construction' },
+  { text: 'and industrial trades.', gold: true },
 ];
 
 export default function Hero() {
@@ -14,15 +12,7 @@ export default function Hero() {
     <section id="top" className="relative min-h-screen">
       <div className="relative min-h-screen w-full overflow-hidden">
         <div className="absolute inset-0 bg-navy-deep">
-          <video
-            className="h-full w-full object-cover opacity-90"
-            autoPlay
-            muted
-            loop
-            playsInline
-          >
-            <source src="/hero.mp4" type="video/mp4" />
-          </video>
+          <HeroVideo />
           <div className="pointer-events-none absolute inset-0 bg-navy-deep/25" />
         </div>
 
@@ -33,49 +23,34 @@ export default function Hero() {
 
         <HudCorners />
 
-        {/* Content */}
+        {/* Content — rendered visible at first paint (no entrance animation above the fold) */}
         <div className="relative z-10 flex min-h-screen flex-col justify-start px-6 pt-28 pb-20 md:justify-center md:px-10 md:pt-20 lg:px-16">
           <div className="mx-auto w-full max-w-[1400px]">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.3, duration: 0.8 }}
-              className="mb-5 flex flex-wrap items-center gap-3"
-            >
+            <div className="mb-5 flex flex-wrap items-center gap-3">
               <Chip>AU · TECHNICAL CONSULTANCY</Chip>
               <Chip>EST. 2026</Chip>
               <span className="spec-label">Technical Consultancy · Australia</span>
-            </motion.div>
+            </div>
 
             <h1 className="max-w-4xl font-display text-[2.4rem] font-semibold leading-[1.02] tracking-tight sm:text-5xl lg:text-6xl xl:text-[4.4rem]">
-              {HEADLINE.map((line, i) => (
-                <BlueprintLine
-                  key={line}
-                  text={line}
-                  delay={0.4 + i * 0.18}
-                  highlight={i === HEADLINE.length - 1}
-                />
+              {HEADLINE.map((l) => (
+                <span
+                  key={l.text}
+                  className={`block ${l.gold ? 'text-gold text-glow' : 'text-white'}`}
+                >
+                  {l.text}
+                </span>
               ))}
             </h1>
 
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.2, duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
-              className="mt-7 max-w-2xl text-base leading-relaxed text-white/70 md:text-lg"
-            >
+            <p className="mt-7 max-w-2xl text-base leading-relaxed text-white/70 md:text-lg">
               A technical consultancy for Australian industry — workforce
-              solutions across engineering, construction, industrial trades
-              and more. We understand the work, so the right people and the
-              right detail follow.
-            </motion.p>
+              solutions across engineering, construction, industrial trades and
+              more. We understand the work, so the right people and the right
+              detail follow.
+            </p>
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.4, duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
-              className="mt-9 flex flex-wrap items-center gap-4"
-            >
+            <div className="mt-9 flex flex-wrap items-center gap-4">
               <a href="#engage" className="btn-primary">
                 Talk to our team
                 <Arrow />
@@ -83,15 +58,10 @@ export default function Hero() {
               <a href="#engage" className="btn-ghost">
                 Join the talent network
               </a>
-            </motion.div>
+            </div>
 
             {/* Stat strip */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.6, duration: 0.9 }}
-              className="mt-12 grid max-w-3xl grid-cols-2 gap-px overflow-hidden border border-white/10 bg-white/5 sm:grid-cols-4"
-            >
+            <div className="mt-12 grid max-w-3xl grid-cols-2 gap-px overflow-hidden border border-white/10 bg-white/5 sm:grid-cols-4">
               {HERO_STATS.map((s) => (
                 <div key={s.label} className="bg-navy-deep/60 px-5 py-4">
                   <div className="font-display text-2xl font-semibold text-gold md:text-3xl">
@@ -102,28 +72,19 @@ export default function Hero() {
                   </div>
                 </div>
               ))}
-            </motion.div>
+            </div>
           </div>
         </div>
 
-        {/* Scroll indicator */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 2, duration: 1 }}
-          className="absolute bottom-7 left-1/2 flex -translate-x-1/2 flex-col items-center gap-2"
-        >
+        {/* Scroll indicator (CSS-only, desktop) */}
+        <div className="absolute bottom-7 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-2 md:flex">
           <span className="font-mono text-[0.6rem] uppercase tracking-[0.3em] text-white/40">
-            Scroll to assemble
+            Scroll to explore
           </span>
           <div className="h-10 w-px overflow-hidden bg-white/15">
-            <motion.div
-              animate={{ y: ['-100%', '100%'] }}
-              transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
-              className="h-1/2 w-full bg-gold"
-            />
+            <div className="hero-cue h-1/2 w-full bg-gold" />
           </div>
-        </motion.div>
+        </div>
       </div>
     </section>
   );
@@ -133,29 +94,6 @@ function Chip({ children }: { children: React.ReactNode }) {
   return (
     <span className="border border-gold/40 px-2.5 py-1 font-mono text-[0.6rem] uppercase tracking-[0.2em] text-gold/90">
       {children}
-    </span>
-  );
-}
-
-function BlueprintLine({
-  text,
-  delay,
-  highlight,
-}: {
-  text: string;
-  delay: number;
-  highlight?: boolean;
-}) {
-  return (
-    <span className="relative block overflow-hidden py-0.5">
-      <motion.span
-        initial={{ y: '110%', opacity: 0, filter: 'blur(8px)' }}
-        animate={{ y: '0%', opacity: 1, filter: 'blur(0px)' }}
-        transition={{ delay, duration: 1, ease: [0.16, 1, 0.3, 1] }}
-        className={`block ${highlight ? 'text-gold text-glow' : 'text-white'}`}
-      >
-        {text}
-      </motion.span>
     </span>
   );
 }
