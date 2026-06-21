@@ -24,8 +24,8 @@ export default function HeroVideo() {
     if (conn && (conn.saveData || /(^|-)2g$/.test(conn.effectiveType || ''))) return;
 
     v.src = window.matchMedia('(max-width: 767px)').matches
-      ? '/hero-mobile.mp4'
-      : '/hero.mp4';
+      ? '/hero-mobile.v2.mp4'
+      : '/hero.v2.mp4';
 
     const start = () => {
       v.play().catch(() => {});
@@ -46,7 +46,7 @@ export default function HeroVideo() {
     <video
       ref={ref}
       className="h-full w-full object-cover opacity-90"
-      poster="/hero-poster.webp"
+      poster="/hero-poster.v2.webp"
       muted
       loop
       playsInline
