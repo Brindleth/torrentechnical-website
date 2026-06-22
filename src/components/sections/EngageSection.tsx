@@ -1,13 +1,16 @@
 'use client';
 
-import { useState, type FormEvent, type ReactNode } from 'react';
+import { useState, useEffect, type FormEvent, type ReactNode } from 'react';
 import Reveal from '@/components/ui/Reveal';
 
 /* Endpoints + field options mirror the original torrentechnical.com forms exactly. */
 const EMPLOYER_WEBHOOK =
   'https://n8n.torrentechnical.com/webhook/employer-enquiry';
-const CANDIDATE_WEBHOOK =
-  'https://n8n.torrentechnical.com/webhook/candidate-registration';
+/* Candidate intake now posts to the Torren ops API (public, multipart) which creates a
+   CandidateApplication and promotes it to a Candidate. The old n8n candidate-registration
+   webhook is retired (it was 500-ing and wrote to a table that no longer exists). */
+const CANDIDATE_ENDPOINT =
+  'https://intake.torrentechnical.com/public/candidate-applications';
 
 const EMP_DISCIPLINES = [
   'Engineering',
@@ -91,6 +94,16 @@ const FIELD =
 
 export default function EngageSection() {
   const [tab, setTab] = useState<'employer' | 'talent'>('employer');
+  // Navbar CTAs dispatch this event to scroll here AND pre-select the right tab:
+  // "Talk to us" → employer, "Join network" → talent.
+  useEffect(() => {
+    const onTab = (e: Event) => {
+      const detail = (e as CustomEvent<'employer' | 'talent'>).detail;
+      if (detail === 'employer' || detail === 'talent') setTab(detail);
+    };
+    window.addEventListener('engage-tab', onTab);
+    return () => window.removeEventListener('engage-tab', onTab);
+  }, []);
   return (
     <section id="engage" className="relative overflow-hidden bg-navy-deep py-28 md:py-36">
       <div className="bg-grid pointer-events-none absolute inset-0 opacity-40" />
@@ -160,6 +173,53 @@ function useSubmit(action: string) {
     setState('sending');
     try {
       const res = await fetch(action, { method: 'POST', body: new FormData(e.currentTarget) });
+      setState(res.ok ? 'sent' : 'error');
+    } catch {
+      setState('error');
+    }
+  }
+  return { state, submit, reset: () => setState('idle') };
+}
+
+/* Candidate submit — maps the form's field names to what the ops intake endpoint expects
+   (multipart): fullName, email, phone, location, workRights, experience, discipline, employed,
+   noticePeriod, salary, cvText, cv (file), consentPrivacyPolicy="true". */
+function useCandidateSubmit() {
+  const [state, setState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
+  async function submit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setState('sending');
+    try {
+      const raw = new FormData(e.currentTarget);
+      const str = (k: string) => {
+        const v = raw.get(k);
+        return typeof v === 'string' ? v.trim() : '';
+      };
+      const fd = new FormData();
+      fd.set('fullName', `${str('first_name')} ${str('last_name')}`.trim());
+      fd.set('email', str('email'));
+      const rename: Record<string, string> = {
+        phone: 'phone',
+        location: 'location',
+        work_auth: 'workRights',
+        years_experience: 'experience',
+        employed_status: 'employed',
+        notice_period_weeks: 'noticePeriod',
+        salary_expectation: 'salary',
+        cv_text: 'cvText',
+      };
+      for (const [from, to] of Object.entries(rename)) {
+        const v = str(from);
+        if (v) fd.set(to, v);
+      }
+      const disc = str('discipline');
+      const discOther = str('discipline_other');
+      const finalDisc = disc === 'Other' && discOther ? discOther : disc;
+      if (finalDisc) fd.set('discipline', finalDisc);
+      const cv = raw.get('cv_file');
+      if (cv instanceof File && cv.size > 0) fd.set('cv', cv);
+      if (raw.get('consent') === 'yes') fd.set('consentPrivacyPolicy', 'true');
+      const res = await fetch(CANDIDATE_ENDPOINT, { method: 'POST', body: fd });
       setState(res.ok ? 'sent' : 'error');
     } catch {
       setState('error');
@@ -271,7 +331,7 @@ function EmployerForm() {
 }
 
 function CandidateForm() {
-  const { state, submit } = useSubmit(CANDIDATE_WEBHOOK);
+  const { state, submit } = useCandidateSubmit();
   const [discipline, setDiscipline] = useState('');
   return (
     <Card>
@@ -280,7 +340,7 @@ function CandidateForm() {
       {state === 'sent' ? (
         <div className="mt-7"><Sent>Registration received. We&apos;ll be in touch if there&apos;s a fit.</Sent></div>
       ) : (
-        <form className="mt-7 space-y-5" action={CANDIDATE_WEBHOOK} method="POST" encType="multipart/form-data" onSubmit={submit}>
+        <form className="mt-7 space-y-5" action={CANDIDATE_ENDPOINT} method="POST" encType="multipart/form-data" onSubmit={submit}>
           <Row>
             <Text name="first_name" label="First name" required />
             <Text name="last_name" label="Last name" required />
@@ -322,6 +382,10 @@ function CandidateForm() {
           <div>
             <label htmlFor="cv_file" className={LABEL}>CV / Résumé (PDF or Word)</label>
             <input id="cv_file" name="cv_file" type="file" accept=".pdf,.doc,.docx,.txt,.rtf,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" className="w-full text-sm text-white/70 file:mr-4 file:border-0 file:bg-gold/15 file:px-4 file:py-2 file:font-mono file:text-[0.65rem] file:uppercase file:tracking-[0.18em] file:text-gold hover:file:bg-gold/25" />
+          </div>
+          <div>
+            <label htmlFor="cv_text" className={LABEL}>Or paste your CV / résumé</label>
+            <textarea id="cv_text" name="cv_text" rows={6} className={`${FIELD} resize-y`} placeholder="No file handy? Paste your CV or a summary of your experience, key projects and skills here — optional if you've attached a file above." />
           </div>
           <Consent text="I consent to Torren Technical storing and processing my information per the Privacy Act 1988 and the Australian Privacy Principles, for the purpose of recruitment matching. I understand I can request deletion at any time." />
           {state === 'error' && <p className="font-mono text-xs text-red-400">Something went wrong. Please try again or email contact@torrentechnical.com.</p>}

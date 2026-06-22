@@ -3,6 +3,12 @@
 import { useEffect, useState } from 'react';
 import { NAV_LINKS } from '@/lib/content';
 
+// CTAs scroll to #engage (via href) AND pre-select the form tab there. EngageSection listens
+// for this event: "Join network" → For Talent, "Talk to us" → For Employers.
+function selectEngageTab(tab: 'employer' | 'talent') {
+  window.dispatchEvent(new CustomEvent('engage-tab', { detail: tab }));
+}
+
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
@@ -46,10 +52,10 @@ export default function Navbar() {
         </div>
 
         <div className="hidden items-center gap-3 md:flex">
-          <a href="#engage" className="btn-ghost text-[0.65rem]">
+          <a href="#engage" onClick={() => selectEngageTab('talent')} className="btn-ghost text-[0.65rem]">
             Join network
           </a>
-          <a href="#engage" className="btn-primary text-[0.65rem]">
+          <a href="#engage" onClick={() => selectEngageTab('employer')} className="btn-primary text-[0.65rem]">
             Talk to us
           </a>
         </div>
@@ -85,10 +91,10 @@ export default function Navbar() {
               </a>
             ))}
             <div className="mt-4 flex flex-col gap-3">
-              <a href="#engage" onClick={() => setOpen(false)} className="btn-ghost justify-center">
+              <a href="#engage" onClick={() => { setOpen(false); selectEngageTab('talent'); }} className="btn-ghost justify-center">
                 Join network
               </a>
-              <a href="#engage" onClick={() => setOpen(false)} className="btn-primary justify-center">
+              <a href="#engage" onClick={() => { setOpen(false); selectEngageTab('employer'); }} className="btn-primary justify-center">
                 Talk to us
               </a>
             </div>
