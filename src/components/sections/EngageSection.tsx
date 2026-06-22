@@ -218,6 +218,10 @@ function useCandidateSubmit() {
       if (finalDisc) fd.set('discipline', finalDisc);
       const cv = raw.get('cv_file');
       if (cv instanceof File && cv.size > 0) fd.set('cv', cv);
+      // Supporting documents (licences, qualifications, certificates) — repeatable "documents" field.
+      for (const doc of raw.getAll('documents')) {
+        if (doc instanceof File && doc.size > 0) fd.append('documents', doc);
+      }
       if (raw.get('consent') === 'yes') fd.set('consentPrivacyPolicy', 'true');
       const res = await fetch(CANDIDATE_ENDPOINT, { method: 'POST', body: fd });
       setState(res.ok ? 'sent' : 'error');
@@ -386,6 +390,11 @@ function CandidateForm() {
           <div>
             <label htmlFor="cv_text" className={LABEL}>Or paste your CV / résumé</label>
             <textarea id="cv_text" name="cv_text" rows={6} className={`${FIELD} resize-y`} placeholder="No file handy? Paste your CV or a summary of your experience, key projects and skills here — optional if you've attached a file above." />
+          </div>
+          <div>
+            <label htmlFor="documents" className={LABEL}>Licences, qualifications &amp; certificates</label>
+            <input id="documents" name="documents" type="file" multiple accept=".pdf,.doc,.docx,.txt,.rtf,.jpg,.jpeg,.png,.webp,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/jpeg,image/png,image/webp" className="w-full text-sm text-white/70 file:mr-4 file:border-0 file:bg-gold/15 file:px-4 file:py-2 file:font-mono file:text-[0.65rem] file:uppercase file:tracking-[0.18em] file:text-gold hover:file:bg-gold/25" />
+            <p className="mt-1.5 font-mono text-[0.65rem] text-white/40">Optional — attach tickets, white cards, trade licences, degrees or other supporting documents. Select multiple files (up to 10).</p>
           </div>
           <Consent text="I consent to Torren Technical storing and processing my information per the Privacy Act 1988 and the Australian Privacy Principles, for the purpose of recruitment matching. I understand I can request deletion at any time." />
           {state === 'error' && <p className="font-mono text-xs text-red-400">Something went wrong. Please try again or email contact@torrentechnical.com.</p>}
