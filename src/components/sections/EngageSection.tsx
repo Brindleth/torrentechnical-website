@@ -4,8 +4,13 @@ import { useState, useEffect, type FormEvent, type ReactNode } from 'react';
 import Reveal from '@/components/ui/Reveal';
 
 /* Endpoints + field options mirror the original torrentechnical.com forms exactly. */
+/* Employer enquiries now post to the Torren ops API (public, multipart) which creates a Job
+   opportunity directly in the recruiter queue (source="employer_enquiry" — pale-red, pinned).
+   The old n8n employer-enquiry webhook is retired. Field names below are the contract the ops
+   endpoint validates: name, company, email, phone, role_title, location, discipline, urgency,
+   model, budget, notes, consent. */
 const EMPLOYER_WEBHOOK =
-  'https://n8n.torrentechnical.com/webhook/employer-enquiry';
+  'https://intake.torrentechnical.com/public/employer-enquiries';
 /* Candidate intake now posts to the Torren ops API (public, multipart) which creates a
    CandidateApplication and promotes it to a Candidate. The old n8n candidate-registration
    webhook is retired (it was 500-ing and wrote to a table that no longer exists). */
