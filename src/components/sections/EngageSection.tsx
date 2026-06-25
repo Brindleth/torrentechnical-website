@@ -347,7 +347,9 @@ function EmployerForm() {
           {deliverableLabel && (
             <Row>
               <Text name="deliverable_count" label={deliverableLabel} type="number" placeholder="e.g. 4" />
-              <div />
+              {model === 'Per-shortlist search'
+                ? <Text name="candidates_per_shortlist" label="Candidates per shortlist" placeholder="e.g. 3-5" />
+                : <div />}
             </Row>
           )}
           <div>
