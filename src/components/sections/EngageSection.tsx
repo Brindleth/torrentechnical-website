@@ -32,7 +32,20 @@ const EMP_URGENCY = [
   'Within 8 weeks',
   'Planning ahead (3+ months)',
 ];
-const EMP_MODEL = ['Retainer', 'Per-shortlist', 'Contingent'];
+const EMP_MODEL = [
+  'Contingent (pay on placement)',
+  'Retained search',
+  'Per-shortlist search',
+  'Candidate sourcing',
+  'Technical screening',
+];
+// R58-B: per-deliverable models also ask for a count on the public form. The label tells the
+// employer what we're counting; the count is sent as `deliverable_count` to the ops intake.
+const EMP_DELIVERABLE_LABEL: Record<string, string> = {
+  'Per-shortlist search': 'Number of shortlists needed',
+  'Candidate sourcing': 'Number of candidate profiles',
+  'Technical screening': 'Number of screening sessions',
+};
 
 const WORK_AUTH = [
   'Citizen',
@@ -290,6 +303,9 @@ function Consent({ text }: { text: string }) {
 
 function EmployerForm() {
   const { state, submit } = useSubmit(EMPLOYER_WEBHOOK);
+  // R58-B: the chosen model drives which extra detail we ask for (e.g. a deliverable count).
+  const [model, setModel] = useState('');
+  const deliverableLabel = EMP_DELIVERABLE_LABEL[model];
   return (
     <Card>
       <h3 className="font-display text-2xl font-semibold text-white">Employer enquiry</h3>
@@ -319,11 +335,21 @@ function EmployerForm() {
             </Select>
           </Row>
           <Row>
-            <Select name="model" label="Preferred commercial model" placeholder="Not sure yet — advise">
-              {EMP_MODEL.map((o) => <option key={o}>{o}</option>)}
-            </Select>
+            <div>
+              <label htmlFor="model" className={LABEL}>Preferred commercial model</label>
+              <select id="model" name="model" value={model} onChange={(e) => setModel(e.target.value)} className={`${FIELD} appearance-none`}>
+                <option value="">Not sure yet — advise</option>
+                {EMP_MODEL.map((o) => <option key={o}>{o}</option>)}
+              </select>
+            </div>
             <Text name="budget" label="Salary band (AUD)" placeholder="e.g. $120k–$140k + super" />
           </Row>
+          {deliverableLabel && (
+            <Row>
+              <Text name="deliverable_count" label={deliverableLabel} type="number" placeholder="e.g. 4" />
+              <div />
+            </Row>
+          )}
           <div>
             <label htmlFor="notes" className={LABEL}>Role details &amp; requirements *</label>
             <textarea id="notes" name="notes" rows={4} required className={`${FIELD} resize-none`} placeholder="Paste the JD, list key technical requirements, or describe the role and anything that matters (clearances, tickets, software, FIFO, etc.)." />
