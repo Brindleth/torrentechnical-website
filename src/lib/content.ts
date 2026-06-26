@@ -6,14 +6,38 @@ export const NAV_LINKS = [
   { label: 'Contact', href: '#engage' },
 ] as const;
 
+/** Australian jurisdictions we currently service. VIC and QLD are permanent and
+ *  client-direct contract recruitment only (no labour hire / on-hire). WA and SA
+ *  are deliberately excluded. Single source of truth for coverage copy. */
+export const SERVICE_LOCATIONS = [
+  'New South Wales',
+  'Victoria',
+  'Queensland',
+  'Tasmania',
+  'Northern Territory',
+  'Australian Capital Territory',
+] as const;
+
+export const COVERAGE_NOTE =
+  'We currently place into NSW, VIC, QLD, TAS, NT and ACT — for permanent and client-direct contract roles only.';
+
+/** Standard positioning line — keep in sync with the footer compliance note. */
+export const POSITIONING_STATEMENT =
+  'We specialise in permanent recruitment and client-direct contract recruitment across selected Australian markets. We do not provide labour hire, payroll, on-hire, or worker supply services.';
+
+export const COMPLIANCE_NOTE =
+  'Torren Technical currently operates only in selected Australian jurisdictions and only for permanent and client-direct contract recruitment. We do not provide labour hire, payroll, on-hire, or regulated/security-cleared recruitment services.';
+
 export const HERO_STATS = [
-  { num: 'AU', label: 'Australia-wide' },
-  { num: '7', label: 'Technical disciplines' },
+  { num: '6', label: 'Selected AU markets' },
+  { num: '6', label: 'Technical disciplines' },
   { num: '100%', label: 'Technically vetted' },
   { num: '0%', label: 'Candidate-side fees' },
 ] as const;
 
-/** 001 · Capabilities — disciplines across engineering, construction & trades */
+/** 001 · Capabilities — disciplines across engineering, construction & technical trades.
+ *  Scope is permanent and client-direct contract recruitment only — no labour hire,
+ *  on-hire, payroll or regulated/security-cleared placement. */
 export const CAPABILITIES = [
   {
     id: 'electronics-embedded',
@@ -21,7 +45,7 @@ export const CAPABILITIES = [
     icon: '⚙',
     title: 'Electronics & Embedded',
     summary:
-      'Electronic test engineering, RF and microwave, embedded firmware, defence electronics, signal processing, instrumentation, hardware-in-the-loop test rigs.',
+      'Electronic test engineering, RF and microwave, embedded firmware, signal processing, instrumentation and hardware-in-the-loop test rigs.',
     tags: ['RF / Microwave', 'Firmware', 'Signal Processing', 'HIL'],
   },
   {
@@ -34,17 +58,8 @@ export const CAPABILITIES = [
     tags: ['PLC / SCADA', 'Robotics', 'IEC 61508', 'Mechatronics'],
   },
   {
-    id: 'defence-aerospace',
-    index: '03',
-    icon: '▣',
-    title: 'Defence & Aerospace',
-    summary:
-      'NV1/NV2/PV-cleared roles, sovereign capability programs, mission systems, avionics, ground systems, hardware/software integration in regulated environments.',
-    tags: ['NV1 / NV2 / PV', 'Mission Systems', 'Avionics', 'Sovereign'],
-  },
-  {
     id: 'electrical-power',
-    index: '04',
+    index: '03',
     icon: '⚡',
     title: 'Electrical & Power',
     summary:
@@ -53,7 +68,7 @@ export const CAPABILITIES = [
   },
   {
     id: 'construction-infrastructure',
-    index: '05',
+    index: '04',
     icon: '⬡',
     title: 'Construction & Infrastructure',
     summary:
@@ -62,7 +77,7 @@ export const CAPABILITIES = [
   },
   {
     id: 'software-industry',
-    index: '06',
+    index: '05',
     icon: '◈',
     title: 'Software for Industry',
     summary:
@@ -71,12 +86,12 @@ export const CAPABILITIES = [
   },
   {
     id: 'industrial-trades',
-    index: '07',
+    index: '06',
     icon: '⬢',
-    title: 'Industrial Trades',
+    title: 'Technical Trades',
     summary:
-      'Licensed industrial electricians, instrument technicians, mechanical fitters, HVAC, welders & boilermakers, heavy diesel — tickets and clearances verified.',
-    tags: ['Instrumentation', 'Fitters', 'HVAC', 'Tickets Verified'],
+      'Industrial electricians, instrument technicians, mechanical fitters, HVAC, welders & boilermakers and heavy diesel — experience and qualifications verified for permanent and contract placement.',
+    tags: ['Instrumentation', 'Fitters', 'HVAC', 'Qualified'],
   },
 ] as const;
 
@@ -98,7 +113,7 @@ export const PROCESS_STAGES = [
     id: 3,
     code: '03',
     title: 'Technical Screening',
-    body: 'Each candidate is assessed by a technical screener against the real requirements — software, tooling, clearances, tickets and domain depth — before they reach you.',
+    body: 'Each candidate is assessed by a technical screener against the real requirements — software, tooling, qualifications and domain depth — before they reach you.',
   },
   {
     id: 4,
@@ -148,29 +163,4 @@ export const WHY_FEATURES = [
     title: 'Honest assessment.',
     body: 'If we are not the right fit for a role, we tell you up front.',
   },
-] as const;
-
-/** Approximate normalised coordinates of Australian industry hubs (0–1 space). */
-export const INDUSTRY_NODES = [
-  { name: 'Perth', sector: 'Resources', x: 0.16, y: 0.62 },
-  { name: 'Adelaide', sector: 'Defence', x: 0.6, y: 0.78 },
-  { name: 'Melbourne', sector: 'Construction', x: 0.72, y: 0.86 },
-  { name: 'Sydney', sector: 'Infrastructure', x: 0.82, y: 0.66 },
-  { name: 'Brisbane', sector: 'Aerospace', x: 0.86, y: 0.46 },
-  { name: 'Newcastle', sector: 'Energy', x: 0.84, y: 0.6 },
-  { name: 'Pilbara', sector: 'Resources', x: 0.26, y: 0.34 },
-  { name: 'Darwin', sector: 'Defence', x: 0.5, y: 0.12 },
-  { name: 'Gladstone', sector: 'Power', x: 0.84, y: 0.4 },
-  { name: 'Geelong', sector: 'Automation', x: 0.7, y: 0.9 },
-] as const;
-
-export const NETWORK_SECTORS = [
-  'Defence',
-  'Resources',
-  'Power',
-  'Construction',
-  'Automation',
-  'Manufacturing',
-  'Infrastructure',
-  'Energy',
 ] as const;

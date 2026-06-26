@@ -2,7 +2,7 @@
   "name": "torren-technical-3d",
   "version": "1.0.0",
   "private": true,
-  "description": "Engineer-led technical sourcing for Australian industry — cinematic 3D web experience.",
+  "description": "Permanent & client-direct contract technical recruitment for selected Australian markets — cinematic web experience.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

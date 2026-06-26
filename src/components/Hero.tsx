@@ -2,9 +2,9 @@ import { HERO_STATS } from '@/lib/content';
 import HeroVideo from '@/components/HeroVideo';
 
 const HEADLINE = [
-  { text: 'A technical consultancy' },
-  { text: 'for engineering, construction' },
-  { text: 'and industrial trades.', gold: true },
+  { text: 'Permanent & contract' },
+  { text: 'technical recruitment' },
+  { text: 'for engineering & industry.', gold: true },
 ];
 
 export default function Hero() {
@@ -27,9 +27,8 @@ export default function Hero() {
         <div className="relative z-10 flex min-h-screen flex-col justify-start px-6 pt-28 pb-20 md:justify-center md:px-10 md:pt-20 lg:px-16">
           <div className="mx-auto w-full max-w-[1400px]">
             <div className="mb-5 flex flex-wrap items-center gap-3">
-              <Chip>AU · TECHNICAL CONSULTANCY</Chip>
+              <Chip>PERMANENT &amp; CONTRACT RECRUITMENT</Chip>
               <Chip>EST. 2026</Chip>
-              <span className="spec-label">Technical Consultancy · Australia</span>
             </div>
 
             <h1 className="max-w-4xl font-display text-[2.4rem] font-semibold leading-[1.02] tracking-tight sm:text-5xl lg:text-6xl xl:text-[4.4rem]">
@@ -44,10 +43,8 @@ export default function Hero() {
             </h1>
 
             <p className="mt-7 max-w-2xl text-base leading-relaxed text-white/70 md:text-lg">
-              A technical consultancy for Australian industry — workforce
-              solutions across engineering, construction, industrial trades and
-              more. We understand the work, so the right people and the right
-              detail follow.
+              Engineer-led recruitment for the roles other recruiters can&apos;t
+              fill.
             </p>
 
             <div className="mt-9 flex flex-wrap items-center gap-4">
@@ -102,8 +99,8 @@ function HudCorners() {
   return (
     <div className="pointer-events-none absolute inset-0 hidden md:block">
       <div className="absolute right-6 top-24 text-right font-mono text-[0.6rem] uppercase tracking-[0.25em] text-white/40">
-        <div>LAT -31.95 · LON 115.86</div>
-        <div className="text-gold/70">PERTH · WA</div>
+        <div>LAT -33.87 · LON 151.21</div>
+        <div className="text-gold/70">SYDNEY · NSW</div>
       </div>
     </div>
   );

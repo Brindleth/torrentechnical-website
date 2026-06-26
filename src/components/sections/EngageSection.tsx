@@ -2,6 +2,7 @@
 
 import { useState, useEffect, type FormEvent, type ReactNode } from 'react';
 import Reveal from '@/components/ui/Reveal';
+import { COVERAGE_NOTE } from '@/lib/content';
 
 /* Endpoints + field options mirror the original torrentechnical.com forms exactly. */
 /* Employer enquiries now post to the Torren ops API (public, multipart) which creates a Job
@@ -19,10 +20,9 @@ const CANDIDATE_ENDPOINT =
 
 const EMP_DISCIPLINES = [
   'Engineering',
-  'Industrial Trades',
+  'Technical Trades',
   'Construction & Site',
   'Property & Maintenance',
-  'Mining & Resources',
   'Technology & Niche',
   'Other (mention in notes)',
 ];
@@ -69,10 +69,9 @@ const CAND_DISCIPLINES: { group: string; items: string[] }[] = [
       'Electrical Engineering', 'Electronic Engineering', 'Software Engineering',
       'Embedded / Firmware Engineering', 'Test Engineering',
       'Mechanical / Mechatronics Engineering', 'Civil / Structural Engineering',
-      'Chemical / Process Engineering', 'Aerospace Engineering',
+      'Chemical / Process Engineering',
       'Controls / Automation / PLC', 'Instrumentation Engineering',
-      'RF / Microwave Engineering', 'Power Engineering', 'Mining Engineering',
-      'Defence-cleared (NV1/NV2/PV)',
+      'RF / Microwave Engineering', 'Power Engineering',
     ],
   },
   {
@@ -93,16 +92,12 @@ const CAND_DISCIPLINES: { group: string; items: string[] }[] = [
     ],
   },
   {
-    group: 'Mining & Resources',
-    items: ['FIFO/DIDO Trades', 'Mining Operator', 'Maintenance Crew', 'Mining Field Service Technician'],
-  },
-  {
     group: 'Property & Maintenance',
-    items: ['Property Maintenance / Handyperson', 'Building Maintenance', 'Grounds & Facilities', 'Cleaning', 'Multi-skilled Trades'],
+    items: ['Property Maintenance / Handyperson', 'Building Maintenance', 'Grounds & Facilities', 'Multi-skilled Trades'],
   },
   {
     group: 'Other',
-    items: ['Labouring / Trade Assistant', 'IT / Software Specialist', 'Other'],
+    items: ['IT / Software Specialist', 'Other'],
   },
 ];
 
@@ -147,6 +142,9 @@ export default function EngageSection() {
             Send us a brief, a position description or a rough scope and we will
             respond with an honest assessment — and a shortlist within five
             business days.
+          </p>
+          <p className="mx-auto mt-4 max-w-xl font-mono text-[0.7rem] uppercase tracking-[0.16em] text-gold/80">
+            {COVERAGE_NOTE}
           </p>
         </div>
 
@@ -324,7 +322,7 @@ function EmployerForm() {
           </Row>
           <Row>
             <Text name="role_title" label="Role title" required placeholder="e.g. Senior Test Engineer" />
-            <Text name="location" label="Location" required placeholder="e.g. Perth WA, FIFO acceptable" />
+            <Text name="location" label="Location" required placeholder="e.g. Sydney NSW" />
           </Row>
           <Row>
             <Select name="discipline" label="Primary discipline" required>
@@ -354,7 +352,7 @@ function EmployerForm() {
           )}
           <div>
             <label htmlFor="notes" className={LABEL}>Role details &amp; requirements *</label>
-            <textarea id="notes" name="notes" rows={4} required className={`${FIELD} resize-none`} placeholder="Paste the JD, list key technical requirements, or describe the role and anything that matters (clearances, tickets, software, FIFO, etc.)." />
+            <textarea id="notes" name="notes" rows={4} required className={`${FIELD} resize-none`} placeholder="Paste the JD, list key technical requirements, or describe the role and anything that matters (qualifications, software, certifications, etc.)." />
           </div>
           <Consent text="I consent to Torren Technical contacting me about this role and storing my details per the Privacy Act 1988. I understand I can request deletion at any time." />
           {state === 'error' && <p className="font-mono text-xs text-red-400">Something went wrong. Please try again or email contact@torrentechnical.com.</p>}
@@ -386,7 +384,7 @@ function CandidateForm() {
             <Text name="email" label="Email" type="email" required />
             <Text name="phone" label="Phone (incl. country code)" type="tel" required placeholder="+61 4XX XXX XXX" defaultValue="+61 " />
           </Row>
-          <Text name="location" label="Current location" required placeholder="e.g. Perth WA, willing to relocate" />
+          <Text name="location" label="Current location" required placeholder="e.g. Sydney NSW, willing to relocate" />
           <Row>
             <Select name="work_auth" label="Australian work authorisation" required>
               {WORK_AUTH.map((o) => <option key={o}>{o}</option>)}

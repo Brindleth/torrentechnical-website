@@ -29,21 +29,21 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
     default:
-      'Torren Technical — Technical consultancy for Australian industry',
+      'Torren Technical — Permanent & contract technical recruitment',
     template: '%s | Torren Technical',
   },
   description:
-    'A technical consultancy for Australian industry — engineering, construction, industrial trades and more. Workforce solutions and technically vetted talent, by people who understand the work.',
+    'Permanent and client-direct contract technical recruitment across selected Australian markets — engineering, construction, electrical & power, automation and technical trades. Technically vetted talent, by people who understand the work. No labour hire, payroll or on-hire.',
   keywords: [
-    'technical consultancy Australia',
-    'engineering recruitment Australia',
-    'construction recruitment Australia',
-    'industrial trades recruitment',
-    'defence recruitment',
-    'automation controls',
-    'electrical power engineering',
-    'technical workforce solutions',
-    'industrial recruitment Australia',
+    'permanent recruitment',
+    'contract recruitment',
+    'engineering recruitment NSW',
+    'engineering recruitment Victoria',
+    'engineering recruitment Queensland',
+    'construction recruitment',
+    'technical trades recruitment',
+    'automation controls recruitment',
+    'electrical power engineering recruitment',
   ],
   authors: [{ name: 'Torren Technical' }],
   creator: 'Torren Technical',
@@ -53,15 +53,15 @@ export const metadata: Metadata = {
     url: SITE_URL,
     siteName: 'Torren Technical',
     title:
-      'Torren Technical — Technical consultancy for Australian industry',
+      'Torren Technical — Permanent & contract technical recruitment',
     description:
-      'A technical consultancy for Australian industry — engineering, construction, industrial trades and more. Technically vetted talent, by people who understand the work.',
+      'Permanent and client-direct contract technical recruitment across selected Australian markets — engineering, construction and technical trades. No labour hire, payroll or on-hire.',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Torren Technical — Technical consultancy for Australian industry',
+    title: 'Torren Technical — Permanent & contract technical recruitment',
     description:
-      'A technical consultancy for engineering, construction, industrial trades and more.',
+      'Permanent and client-direct contract technical recruitment across selected Australian markets. No labour hire, payroll or on-hire.',
   },
   robots: { index: true, follow: true },
 };
@@ -74,19 +74,28 @@ export const viewport: Viewport = {
 
 const orgJsonLd = {
   '@context': 'https://schema.org',
-  '@type': 'Organization',
+  '@type': 'EmploymentAgency',
   name: 'Torren Technical',
   description:
-    'A technical consultancy for Australian industry — engineering, construction, industrial trades and more.',
+    'Permanent and client-direct contract technical recruitment across selected Australian markets — engineering, construction and technical trades. No labour hire, payroll or on-hire.',
+  disambiguatingDescription:
+    'Torren Technical currently operates only in selected Australian jurisdictions (NSW, VIC, QLD, TAS, NT and ACT) and only for permanent and client-direct contract recruitment. We do not provide labour hire, payroll, on-hire, or regulated/security-cleared recruitment services.',
   url: SITE_URL,
-  areaServed: 'AU',
+  areaServed: [
+    'New South Wales',
+    'Victoria',
+    'Queensland',
+    'Tasmania',
+    'Northern Territory',
+    'Australian Capital Territory',
+  ],
   knowsAbout: [
     'Electronics & Embedded',
     'Automation & Controls',
-    'Defence & Aerospace',
     'Electrical & Power',
+    'Construction & Infrastructure',
     'Software for Industry',
-    'Industrial Trades',
+    'Technical Trades',
   ],
 };
 

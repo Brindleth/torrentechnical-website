@@ -1,10 +1,11 @@
 # Torren Technical — 3D Web Experience
 
-A cinematic, immersive 3D website for **Torren Technical** — engineer-led technical
-sourcing for Australian industry. Built to feel like entering a defence-technology
-control centre, not a recruitment site.
+A cinematic, immersive website for **Torren Technical** — permanent and
+client-direct contract technical recruitment across selected Australian markets
+(NSW, VIC, QLD, TAS, NT, ACT). No labour hire, payroll, on-hire, or
+regulated/security-cleared recruitment.
 
-> *"Engineer-led sourcing for the roles other recruiters can't fill."*
+> *"Engineer-led recruitment for the roles other recruiters can't fill."*
 
 ## Stack
 
@@ -33,7 +34,7 @@ npm start        # serve the production build
 | **02 · The Method** | A 5-stage pipeline that physically builds itself — the conduit fills and nodes light up with scroll progress. |
 | **03 · Disciplines** | Six interactive sectors, each with discipline-specific animated technical schematics. |
 | **04 · Why Torren** | Holographic comparison — Traditional vs Torren across five metrics. |
-| **05 · National Network** | A 3D map of Australia (R3F) with pulsing industry hubs and parallax tilt. |
+| **05 · Coverage** | Selected Australian markets (NSW, VIC, QLD, TAS, NT, ACT) — permanent and client-direct contract only. |
 | **06 · Technical Authority** | HUD metric cards with scan-line and bracket framing. |
 | **Engage** | Brief-a-role / register-CV channels. |
 | **Final CTA** | The network converges into a single glowing core (R3F). |

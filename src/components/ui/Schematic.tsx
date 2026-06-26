@@ -50,20 +50,6 @@ export default function Schematic({
           <line x1="180" y1="20" x2="180" y2="180" />
         </g>
       )}
-      {id === 'defence-aerospace' && (
-        <g {...props}>
-          <circle cx="100" cy="100" r="30" />
-          <circle cx="100" cy="100" r="60" strokeOpacity="0.5" />
-          <circle cx="100" cy="100" r="85" strokeOpacity="0.3" />
-          <line x1="100" y1="15" x2="100" y2="185" strokeOpacity="0.3" />
-          <line x1="15" y1="100" x2="185" y2="100" strokeOpacity="0.3" />
-          <g style={{ transformOrigin: '100px 100px', animation: active ? 'spin360 4s linear infinite' : 'none' }}>
-            <path d="M100 100L100 20" />
-            <path d="M100 20a80 80 0 0 1 50 18" strokeOpacity="0.6" />
-          </g>
-          <circle cx="100" cy="100" r="3" fill={stroke} />
-        </g>
-      )}
       {id === 'electrical-power' && (
         <g {...props}>
           <path d="M30 100h40l15-40 30 80 15-40h40" strokeDasharray="8 4" className={dash} />
