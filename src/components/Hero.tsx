@@ -2,9 +2,9 @@ import { HERO_STATS } from '@/lib/content';
 import HeroVideo from '@/components/HeroVideo';
 
 const HEADLINE = [
-  { text: 'Permanent & contract' },
-  { text: 'technical recruitment' },
-  { text: 'for engineering & industry.', gold: true },
+  { text: 'A technical consultancy' },
+  { text: 'for engineering, construction' },
+  { text: 'and industrial trades.', gold: true },
 ];
 
 export default function Hero() {
@@ -43,8 +43,9 @@ export default function Hero() {
             </h1>
 
             <p className="mt-7 max-w-2xl text-base leading-relaxed text-white/70 md:text-lg">
-              Engineer-led recruitment for the roles other recruiters can&apos;t
-              fill.
+              A technical consultancy for engineering, construction, industrial
+              trades and more across selected Australian markets. We understand
+              the work, so the right people and the right detail follow.
             </p>
 
             <div className="mt-9 flex flex-wrap items-center gap-4">
