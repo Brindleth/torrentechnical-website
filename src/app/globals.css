@@ -68,11 +68,29 @@ html {
   }
 }
 
+/* Page transition — content gently fades + rises in on each navigation (app/template.tsx) */
+.page-fade {
+  animation: pageFade 0.55s ease-out both;
+}
+@keyframes pageFade {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
   }
   .hero-cue {
+    animation: none;
+  }
+  .page-fade {
     animation: none;
   }
   .reveal {

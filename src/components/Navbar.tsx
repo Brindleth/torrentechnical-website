@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { NAV_LINKS } from '@/lib/content';
 
 // CTAs scroll to #engage (via href) AND pre-select the form tab there. EngageSection listens
@@ -12,6 +14,14 @@ function selectEngageTab(tab: 'employer' | 'talent') {
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+  const onHome = pathname === '/';
+
+  // Hash targets scroll in-page on the homepage; from any other route (e.g. /jobs) they must
+  // navigate home first, so prefix with "/". Non-hash links (e.g. /jobs) pass through unchanged.
+  const toHash = (hash: string) => (onHome ? hash : `/${hash}`);
+  const resolve = (href: string) => (href.startsWith('#') ? toHash(href) : href);
+  const logoHref = onHome ? '#top' : '/';
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -29,35 +39,35 @@ export default function Navbar() {
       }`}
     >
       <nav className="mx-auto flex max-w-[1400px] items-center justify-between px-6 py-4 md:px-10">
-        <a href="#top" className="group flex items-center gap-3">
+        <Link href={logoHref} className="group flex items-center gap-3">
           <span className="flex h-9 w-9 items-center justify-center border border-gold/50 bg-gold/10 font-display text-lg font-bold text-gold transition-colors group-hover:bg-gold/20">
             T
           </span>
           <span className="font-display text-sm font-semibold uppercase tracking-[0.14em] text-white">
             Torren Technical
           </span>
-        </a>
+        </Link>
 
         <div className="hidden items-center gap-8 lg:flex">
           {NAV_LINKS.map((l) => (
-            <a
+            <Link
               key={l.href}
-              href={l.href}
+              href={resolve(l.href)}
               className="group relative font-mono text-[0.7rem] uppercase tracking-[0.2em] text-white/55 transition-colors hover:text-white"
             >
               {l.label}
               <span className="absolute -bottom-1.5 left-0 h-px w-0 bg-gold transition-all duration-300 group-hover:w-full" />
-            </a>
+            </Link>
           ))}
         </div>
 
         <div className="hidden items-center gap-3 md:flex">
-          <a href="#engage" onClick={() => selectEngageTab('talent')} className="btn-ghost text-[0.65rem]">
+          <Link href={toHash('#engage')} onClick={() => selectEngageTab('talent')} className="btn-ghost text-[0.65rem]">
             Join network
-          </a>
-          <a href="#engage" onClick={() => selectEngageTab('employer')} className="btn-primary text-[0.65rem]">
+          </Link>
+          <Link href={toHash('#engage')} onClick={() => selectEngageTab('employer')} className="btn-primary text-[0.65rem]">
             Talk to us
-          </a>
+          </Link>
         </div>
 
         <button
@@ -81,22 +91,22 @@ export default function Navbar() {
         <div className="min-h-0 overflow-hidden">
           <div className="flex flex-col gap-1 px-6 py-6">
             {NAV_LINKS.map((l) => (
-              <a
+              <Link
                 key={l.href}
-                href={l.href}
+                href={resolve(l.href)}
                 onClick={() => setOpen(false)}
                 className="border-b border-line-dark/40 py-3 font-mono text-sm uppercase tracking-[0.2em] text-white/70"
               >
                 {l.label}
-              </a>
+              </Link>
             ))}
             <div className="mt-4 flex flex-col gap-3">
-              <a href="#engage" onClick={() => { setOpen(false); selectEngageTab('talent'); }} className="btn-ghost justify-center">
+              <Link href={toHash('#engage')} onClick={() => { setOpen(false); selectEngageTab('talent'); }} className="btn-ghost justify-center">
                 Join network
-              </a>
-              <a href="#engage" onClick={() => { setOpen(false); selectEngageTab('employer'); }} className="btn-primary justify-center">
+              </Link>
+              <Link href={toHash('#engage')} onClick={() => { setOpen(false); selectEngageTab('employer'); }} className="btn-primary justify-center">
                 Talk to us
-              </a>
+              </Link>
             </div>
           </div>
         </div>
