@@ -53,6 +53,10 @@ export default function Hero() {
                 Talk to our team
                 <Arrow />
               </a>
+              <a href="/jobs" className="btn-ghost">
+                View open roles
+                <Arrow />
+              </a>
               <a href="#engage" className="btn-ghost">
                 Join the talent network
               </a>

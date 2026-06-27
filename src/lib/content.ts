@@ -3,6 +3,7 @@ export const NAV_LINKS = [
   { label: 'How we work', href: '#process' },
   { label: 'Standards', href: '#authority' },
   { label: 'Why Torren', href: '#why' },
+  { label: 'Open Roles', href: '/jobs' },
   { label: 'Contact', href: '#engage' },
 ] as const;
 
