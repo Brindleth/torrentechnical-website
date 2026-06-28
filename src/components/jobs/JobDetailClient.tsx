@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { fetchJob, applyUrl, type JobDetail } from '@/lib/jobs-api';
+import { fetchJob, type JobDetail } from '@/lib/jobs-api';
+import ApplyForm from '@/components/jobs/ApplyForm';
 
 // Client-rendered advert. Static-export-safe: the role is identified by ?token= (read in the
 // browser) and fetched live from the public API, so there is no per-token route to pre-build.
@@ -53,8 +54,6 @@ export default function JobDetailClient() {
     );
   }
 
-  const href = applyUrl(token);
-
   return (
     <>
       {/* Header */}
@@ -72,9 +71,9 @@ export default function JobDetailClient() {
         </div>
       </div>
 
-      {/* Apply CTA (top) */}
+      {/* Apply CTA (top) — scrolls to the application form embedded below (R72-A). */}
       <div className="mt-8">
-        <a href={href} className="btn-primary">
+        <a href="#apply" className="btn-primary">
           Apply for this role
           <Arrow />
         </a>
@@ -88,25 +87,15 @@ export default function JobDetailClient() {
         <SkillBlock title="Nice to have" skills={job.niceToHaveSkills} />
         <Block title="Experience" body={job.experienceRequirements} />
         <Block title="Licences & tickets" body={job.licenceRequirements} />
+        <Block title="Benefits & perks" body={job.benefits} />
         <Block title="Shift & availability" body={job.shiftAvailability} />
         <Block title="Screening & compliance" body={job.screeningCompliance} />
         <Block title="How to apply" body={job.applicationInstructions} />
       </div>
 
-      {/* Apply CTA (bottom) */}
-      <div className="mt-14 border-t border-line-dark/60 pt-10">
-        <div className="glass corner-bracket px-8 py-9 text-center">
-          <h2 className="font-display text-2xl font-semibold text-white">Ready to apply?</h2>
-          <p className="mx-auto mt-2 max-w-md text-sm text-white/60">
-            Apply directly to Torren Technical. We never charge candidates — your application goes
-            straight to the team handling this role.
-          </p>
-          <a href={href} className="btn-primary mt-6">
-            Apply for this role
-            <Arrow />
-          </a>
-        </div>
-      </div>
+      {/* Application form — candidates apply directly here (R72-A): the canonical candidate page on
+          the brand domain, no redirect to the signing host. */}
+      <ApplyForm token={token} roleTitle={job.title} />
     </>
   );
 }

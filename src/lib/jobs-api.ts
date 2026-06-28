@@ -1,16 +1,17 @@
-// R64-B — Public job board data layer.
+// R64-B / R72-A — Public job board data layer.
 //
 // Reads the leak-safe public endpoints exposed by the Torren ops API (R64-A):
-//   GET /public/jobs                  — board listing (whitelisted card fields)
-//   GET /public/job-postings/:token   — single advert (whitelisted detail fields)
+//   GET  /public/jobs                  — board listing (whitelisted card fields)
+//   GET  /public/job-postings/:token   — single advert (whitelisted detail fields)
+//   POST /public/jobs/:token/apply     — candidate application (multipart) → AI intake + auto-match
 //
 // No auth. The API only ever returns PUBLISHED postings and never exposes client identity,
-// commercials, fees, or internal ids. Apply links reuse the existing ops apply flow.
+// commercials, fees, or internal ids. R72-A: the application form is now hosted ON this board (the
+// canonical candidate page) — it posts the application directly to the ops API instead of bouncing
+// candidates to the sign. signing host.
 
 const API_BASE =
   process.env.NEXT_PUBLIC_JOBS_API_BASE ?? 'https://intake.torrentechnical.com';
-const APPLY_BASE =
-  process.env.NEXT_PUBLIC_APPLY_BASE ?? 'https://sign.torrentechnical.com';
 
 export interface JobCard {
   publicToken: string;
@@ -36,6 +37,7 @@ export interface JobDetail {
   niceToHaveSkills: string[] | null;
   licenceRequirements: string | null;
   experienceRequirements: string | null;
+  benefits: string | null;
   shiftAvailability: string | null;
   screeningCompliance: string | null;
   applicationInstructions: string | null;
@@ -49,9 +51,25 @@ export interface JobList {
   offset: number;
 }
 
-// The candidate apply page lives on the ops public host (R52-A: <signHost>/apply/<token>).
-export function applyUrl(token: string): string {
-  return `${APPLY_BASE.replace(/\/$/, '')}/apply/${token}`;
+// R72-A — Submit a candidate application for a specific published role. Multipart so a CV and
+// supporting documents can be attached. Posts straight to the ops public API (same intake pipeline
+// as the talent form: rate-limited, consent-gated, dedup, AI intake, auto-match). Never returns
+// internal candidate ids. Throws on non-2xx so the form can surface a friendly message.
+export async function submitApplication(token: string, form: FormData): Promise<void> {
+  const res = await fetch(`${API_BASE}/public/jobs/${token}/apply`, {
+    method: 'POST',
+    body: form,
+  });
+  if (!res.ok) {
+    let message = 'Something went wrong. Please try again.';
+    try {
+      const json = (await res.json()) as { error?: { message?: string } };
+      if (json?.error?.message) message = json.error.message;
+    } catch {
+      /* non-JSON error body — keep the generic message */
+    }
+    throw new Error(message);
+  }
 }
 
 export async function fetchJobs(limit = 60): Promise<JobList> {
