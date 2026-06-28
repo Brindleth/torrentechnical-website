@@ -47,12 +47,12 @@ export default function Footer() {
             <ul className="space-y-3 text-sm">
               <li>
                 <a href="#engage" className="text-white/60 transition-colors hover:text-gold">
-                  Talk to our team →
+                  Discuss your hiring requirements →
                 </a>
               </li>
               <li>
                 <a href="#engage" className="text-white/60 transition-colors hover:text-gold">
-                  Join the network →
+                  Submit your CV →
                 </a>
               </li>
             </ul>
@@ -63,7 +63,35 @@ export default function Footer() {
           Torren Technical currently operates only in selected Australian
           jurisdictions and only for permanent and client-direct contract
           recruitment. We do not provide labour hire, payroll, on-hire, or
-          regulated/security-cleared recruitment services.
+          regulated/security-cleared recruitment services. Our practice aligns
+          with Australian workplace and engineering standards, including the{' '}
+          <a
+            href="https://www.fairwork.gov.au"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-white/60 transition-colors hover:text-gold"
+          >
+            Fair Work Ombudsman
+          </a>
+          ,{' '}
+          <a
+            href="https://www.engineersaustralia.org.au"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-white/60 transition-colors hover:text-gold"
+          >
+            Engineers Australia
+          </a>{' '}
+          and{' '}
+          <a
+            href="https://business.gov.au"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-white/60 transition-colors hover:text-gold"
+          >
+            Australian Government employment resources
+          </a>
+          .
         </p>
 
         <div className="mt-6 flex flex-col items-start justify-between gap-4 font-mono text-[0.65rem] uppercase tracking-[0.18em] text-white/35 md:flex-row md:items-center">

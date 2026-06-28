@@ -28,9 +28,10 @@ export default function WhySection() {
               className="mt-6 space-y-4 text-base leading-relaxed text-white/65"
             >
               <p>
-                We operate as a focused technical consultancy rather than a
-                high-volume agency: fewer engagements, deeper briefs, and higher
-                quality per role across engineering, construction and the trades.
+                We operate as a technical consultancy for engineering,
+                construction and industrial trades rather than a high-volume
+                agency: fewer engagements, deeper briefs, and higher quality per
+                role.
               </p>
               <p>
                 Our consultants understand specifications, drawings and site

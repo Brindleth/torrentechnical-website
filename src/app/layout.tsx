@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     template: '%s | Torren Technical',
   },
   description:
-    'Permanent and client-direct contract technical recruitment across selected Australian markets — engineering, construction, electrical & power, automation and technical trades. Technically vetted talent, by people who understand the work. No labour hire, payroll or on-hire.',
+    'Permanent, client-direct technical recruitment for Australian engineering, construction, electrical, automation and industrial. No labour hire or payroll.',
   keywords: [
     'permanent recruitment',
     'contract recruitment',
@@ -56,12 +56,21 @@ export const metadata: Metadata = {
       'Torren Technical — Permanent & contract technical recruitment',
     description:
       'Permanent and client-direct contract technical recruitment across selected Australian markets — engineering, construction and technical trades. No labour hire, payroll or on-hire.',
+    images: [
+      {
+        url: '/hero-poster.v2.webp',
+        width: 1280,
+        height: 720,
+        alt: 'Torren Technical — technical recruitment across Australian engineering, construction and industrial sectors',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Torren Technical — Permanent & contract technical recruitment',
     description:
       'Permanent and client-direct contract technical recruitment across selected Australian markets. No labour hire, payroll or on-hire.',
+    images: ['/hero-poster.v2.webp'],
   },
   robots: { index: true, follow: true },
 };
@@ -72,30 +81,75 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-const orgJsonLd = {
+// JSON-LD graph: Organization + ProfessionalService (EmploymentAgency) + WebSite.
+// Static markup only — no runtime/library cost, no visual output.
+const structuredData = {
   '@context': 'https://schema.org',
-  '@type': 'EmploymentAgency',
-  name: 'Torren Technical',
-  description:
-    'Permanent and client-direct contract technical recruitment across selected Australian markets — engineering, construction and technical trades. No labour hire, payroll or on-hire.',
-  disambiguatingDescription:
-    'Torren Technical currently operates only in selected Australian jurisdictions (NSW, VIC, QLD, TAS, NT and ACT) and only for permanent and client-direct contract recruitment. We do not provide labour hire, payroll, on-hire, or regulated/security-cleared recruitment services.',
-  url: SITE_URL,
-  areaServed: [
-    'New South Wales',
-    'Victoria',
-    'Queensland',
-    'Tasmania',
-    'Northern Territory',
-    'Australian Capital Territory',
-  ],
-  knowsAbout: [
-    'Electronics & Embedded',
-    'Automation & Controls',
-    'Electrical & Power',
-    'Construction & Infrastructure',
-    'Software for Industry',
-    'Technical Trades',
+  '@graph': [
+    {
+      '@type': 'Organization',
+      '@id': `${SITE_URL}/#organization`,
+      name: 'Torren Technical',
+      url: SITE_URL,
+      logo: {
+        '@type': 'ImageObject',
+        url: `${SITE_URL}/icon.png`,
+        width: 512,
+        height: 512,
+      },
+      image: `${SITE_URL}/hero-poster.v2.webp`,
+      description:
+        'Permanent and client-direct technical recruitment across Australian engineering, construction, electrical, automation and industrial sectors. No labour hire or payroll.',
+      email: 'contact@torrentechnical.com',
+      contactPoint: {
+        '@type': 'ContactPoint',
+        contactType: 'sales',
+        email: 'contact@torrentechnical.com',
+        areaServed: 'AU',
+        availableLanguage: 'English',
+      },
+      areaServed: { '@type': 'Country', name: 'Australia' },
+    },
+    {
+      '@type': ['ProfessionalService', 'EmploymentAgency'],
+      '@id': `${SITE_URL}/#service`,
+      name: 'Torren Technical',
+      url: SITE_URL,
+      image: `${SITE_URL}/hero-poster.v2.webp`,
+      parentOrganization: { '@id': `${SITE_URL}/#organization` },
+      description:
+        'Permanent and client-direct technical recruitment across Australian engineering, construction, electrical, automation and industrial sectors. No labour hire, payroll or on-hire.',
+      areaServed: { '@type': 'Country', name: 'Australia' },
+      knowsAbout: [
+        'Engineering Recruitment',
+        'Construction Recruitment',
+        'Electrical Recruitment',
+        'Automation Recruitment',
+        'Technical Trades Recruitment',
+      ],
+      hasOfferCatalog: {
+        '@type': 'OfferCatalog',
+        name: 'Technical recruitment specialisations',
+        itemListElement: [
+          'Engineering Recruitment',
+          'Construction Recruitment',
+          'Electrical Recruitment',
+          'Automation Recruitment',
+          'Technical Trades Recruitment',
+        ].map((name) => ({
+          '@type': 'Offer',
+          itemOffered: { '@type': 'Service', name },
+        })),
+      },
+    },
+    {
+      '@type': 'WebSite',
+      '@id': `${SITE_URL}/#website`,
+      name: 'Torren Technical',
+      url: SITE_URL,
+      inLanguage: 'en-AU',
+      publisher: { '@id': `${SITE_URL}/#organization` },
+    },
   ],
 };
 
@@ -112,7 +166,7 @@ export default function RootLayout({
       <body className="bg-navy-deep text-white antialiased">
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
         />
         <Navbar />
         <main>{children}</main>
