@@ -172,6 +172,23 @@ export default function RootLayout({
       lang="en-AU"
       className={`${inter.variable} ${interTight.variable} ${jetbrains.variable}`}
     >
+      <head>
+        <script
+          async
+          src="https://www.googletagmanager.com/gtag/js?id=AW-18289525535"
+        />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'AW-18289525535');
+            `,
+          }}
+        />
+      </head>
       <body className="bg-navy-deep text-white antialiased">
         <script
           type="application/ld+json"
