@@ -16,19 +16,24 @@ function parseSalary(raw: string | null): Record<string, unknown> | null {
   const isHourly = /\bhr\b|hour|p\/h/.test(lower);
   const unitText = isHourly ? 'HOUR' : 'YEAR';
 
-  // Strip currency symbols and commas, extract all numbers.
+  // Extract all numeric tokens (strip commas).
   const nums = [...raw.matchAll(/[\d,]+(?:\.\d+)?/g)]
     .map((m) => parseFloat(m[0].replace(/,/g, '')))
     .filter((n) => n > 0);
 
   if (nums.length === 0) return null;
 
-  // Sanity-check: annual figures should be > 1000, hourly < 1000.
-  const plausible = nums.filter((n) => (isHourly ? n < 1000 : n > 1000));
-  if (plausible.length === 0) return null;
+  // For annual salaries, shorthand like "85" in "$85-100,000" means 85,000.
+  // If we have a mix of numbers ≥1000 and <1000, scale the small ones up.
+  const hasFullNumber = nums.some((n) => n >= 1000);
+  const normalised = isHourly
+    ? nums.filter((n) => n < 1000)
+    : nums.map((n) => (hasFullNumber && n < 1000 ? n * 1000 : n)).filter((n) => n >= 1000);
 
-  const min = Math.min(...plausible);
-  const max = Math.max(...plausible);
+  if (normalised.length === 0) return null;
+
+  const min = Math.min(...normalised);
+  const max = Math.max(...normalised);
 
   if (min === max) {
     return {
@@ -126,7 +131,6 @@ function buildJsonLd(token: string, job: JobDetail): Record<string, unknown> {
   if (job.requiredSkills?.length) jsonLd.skills = job.requiredSkills.join(', ');
   if (job.licenceRequirements) jsonLd.qualifications = job.licenceRequirements;
   if (job.roleServiceRequirements) jsonLd.responsibilities = job.roleServiceRequirements;
-  if (job.experienceRequirements) jsonLd.experienceRequirements = job.experienceRequirements;
   if (job.benefits) jsonLd.jobBenefits = job.benefits;
   if (job.workArrangement) jsonLd.workHours = job.workArrangement;
 
