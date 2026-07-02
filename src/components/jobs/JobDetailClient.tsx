@@ -6,6 +6,75 @@ import { useSearchParams } from 'next/navigation';
 import { fetchJob, type JobDetail } from '@/lib/jobs-api';
 import ApplyForm from '@/components/jobs/ApplyForm';
 
+const BOARD_ORIGIN = 'https://torrentechnical.com';
+const API_BASE = process.env.NEXT_PUBLIC_JOBS_API_BASE ?? 'https://intake.torrentechnical.com';
+
+function buildJsonLd(token: string, job: JobDetail): Record<string, unknown> {
+  const applyUrl = `${BOARD_ORIGIN}/jobs/role?token=${token}`;
+  const datePosted = job.publishedAt ?? new Date().toISOString();
+
+  const employmentTypeMap: Record<string, string> = {
+    permanent: 'FULL_TIME',
+    'full-time': 'FULL_TIME',
+    full: 'FULL_TIME',
+    'part-time': 'PART_TIME',
+    part: 'PART_TIME',
+    contract: 'CONTRACTOR',
+    fixed: 'CONTRACTOR',
+    casual: 'TEMPORARY',
+    temp: 'TEMPORARY',
+    intern: 'INTERN',
+  };
+  const empType = job.employmentType
+    ? Object.entries(employmentTypeMap).find(([k]) =>
+        job.employmentType!.toLowerCase().includes(k)
+      )?.[1]
+    : null;
+
+  const descParts: string[] = [];
+  if (job.roleSummary) descParts.push(job.roleSummary);
+  if (job.experienceRequirements) descParts.push(`Experience: ${job.experienceRequirements}`);
+  if (job.licenceRequirements) descParts.push(`Licences & tickets: ${job.licenceRequirements}`);
+  if (job.benefits) descParts.push(`Benefits: ${job.benefits}`);
+  const description = descParts.join('\n\n') || job.title || 'Open role';
+
+  const isRemote = job.workArrangement
+    ? /remote|anywhere|work from home/i.test(job.workArrangement)
+    : false;
+
+  const jsonLd: Record<string, unknown> = {
+    '@context': 'https://schema.org/',
+    '@type': 'JobPosting',
+    title: job.title ?? 'Open role',
+    description,
+    datePosted,
+    directApply: true,
+    url: applyUrl,
+    identifier: { '@type': 'PropertyValue', name: 'Torren Technical', value: token },
+    hiringOrganization: {
+      '@type': 'Organization',
+      name: 'Torren Technical',
+      sameAs: BOARD_ORIGIN,
+    },
+  };
+
+  if (isRemote) {
+    jsonLd.jobLocationType = 'TELECOMMUTE';
+    jsonLd.applicantLocationRequirements = { '@type': 'Country', name: 'AU' };
+  }
+  jsonLd.jobLocation = {
+    '@type': 'Place',
+    address: {
+      '@type': 'PostalAddress',
+      ...(job.location ? { addressLocality: job.location } : {}),
+      addressCountry: 'AU',
+    },
+  };
+  if (empType) jsonLd.employmentType = empType;
+
+  return jsonLd;
+}
+
 // Client-rendered advert. Static-export-safe: the role is identified by ?token= (read in the
 // browser) and fetched live from the public API, so there is no per-token route to pre-build.
 export default function JobDetailClient() {
@@ -30,6 +99,24 @@ export default function JobDetailClient() {
       active = false;
     };
   }, [token]);
+
+  // Inject Google for Jobs JSON-LD once job data is available.
+  useEffect(() => {
+    if (!job || !token) return;
+    const id = 'torren-job-jsonld';
+    let el = document.getElementById(id) as HTMLScriptElement | null;
+    if (!el) {
+      el = document.createElement('script');
+      el.id = id;
+      el.type = 'application/ld+json';
+      document.head.appendChild(el);
+    }
+    el.textContent = JSON.stringify(buildJsonLd(token, job));
+    document.title = `${job.title ?? 'Open role'} — Torren Technical`;
+    return () => {
+      document.getElementById(id)?.remove();
+    };
+  }, [job, token]);
 
   if (state === 'loading') {
     return (
