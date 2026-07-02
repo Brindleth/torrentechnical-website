@@ -7,11 +7,52 @@ import { fetchJob, type JobDetail } from '@/lib/jobs-api';
 import ApplyForm from '@/components/jobs/ApplyForm';
 
 const BOARD_ORIGIN = 'https://torrentechnical.com';
-const API_BASE = process.env.NEXT_PUBLIC_JOBS_API_BASE ?? 'https://intake.torrentechnical.com';
+
+// Parse free-text salary like "$85-100,000 + 12% super" or "$55/hr" into schema.org baseSalary.
+// Returns null if no recognisable number is found — better to omit than guess wrong.
+function parseSalary(raw: string | null): Record<string, unknown> | null {
+  if (!raw) return null;
+  const lower = raw.toLowerCase();
+  const isHourly = /\bhr\b|hour|p\/h/.test(lower);
+  const unitText = isHourly ? 'HOUR' : 'YEAR';
+
+  // Strip currency symbols and commas, extract all numbers.
+  const nums = [...raw.matchAll(/[\d,]+(?:\.\d+)?/g)]
+    .map((m) => parseFloat(m[0].replace(/,/g, '')))
+    .filter((n) => n > 0);
+
+  if (nums.length === 0) return null;
+
+  // Sanity-check: annual figures should be > 1000, hourly < 1000.
+  const plausible = nums.filter((n) => (isHourly ? n < 1000 : n > 1000));
+  if (plausible.length === 0) return null;
+
+  const min = Math.min(...plausible);
+  const max = Math.max(...plausible);
+
+  if (min === max) {
+    return {
+      '@type': 'MonetaryAmount',
+      currency: 'AUD',
+      value: { '@type': 'QuantitativeValue', value: min, unitText },
+    };
+  }
+  return {
+    '@type': 'MonetaryAmount',
+    currency: 'AUD',
+    value: { '@type': 'QuantitativeValue', minValue: min, maxValue: max, unitText },
+  };
+}
 
 function buildJsonLd(token: string, job: JobDetail): Record<string, unknown> {
   const applyUrl = `${BOARD_ORIGIN}/jobs/role?token=${token}`;
   const datePosted = job.publishedAt ?? new Date().toISOString();
+
+  // validThrough: 90 days from publish — we don't store expiry, this keeps listings from
+  // appearing stale in Google's index. Republishing resets it naturally.
+  const validThrough = new Date(
+    new Date(datePosted).getTime() + 90 * 24 * 60 * 60 * 1000
+  ).toISOString();
 
   const employmentTypeMap: Record<string, string> = {
     permanent: 'FULL_TIME',
@@ -31,11 +72,16 @@ function buildJsonLd(token: string, job: JobDetail): Record<string, unknown> {
       )?.[1]
     : null;
 
+  // Rich description: all candidate-facing sections concatenated. Google uses this for keyword
+  // matching and display — more content = better coverage.
   const descParts: string[] = [];
   if (job.roleSummary) descParts.push(job.roleSummary);
-  if (job.experienceRequirements) descParts.push(`Experience: ${job.experienceRequirements}`);
-  if (job.licenceRequirements) descParts.push(`Licences & tickets: ${job.licenceRequirements}`);
-  if (job.benefits) descParts.push(`Benefits: ${job.benefits}`);
+  if (job.roleServiceRequirements) descParts.push(`Responsibilities:\n${job.roleServiceRequirements}`);
+  if (job.experienceRequirements) descParts.push(`Experience:\n${job.experienceRequirements}`);
+  if (job.licenceRequirements) descParts.push(`Licences & tickets:\n${job.licenceRequirements}`);
+  if (job.screeningCompliance) descParts.push(`Screening & compliance:\n${job.screeningCompliance}`);
+  if (job.benefits) descParts.push(`Benefits:\n${job.benefits}`);
+  if (job.applicationInstructions) descParts.push(`How to apply:\n${job.applicationInstructions}`);
   const description = descParts.join('\n\n') || job.title || 'Open role';
 
   const isRemote = job.workArrangement
@@ -48,6 +94,7 @@ function buildJsonLd(token: string, job: JobDetail): Record<string, unknown> {
     title: job.title ?? 'Open role',
     description,
     datePosted,
+    validThrough,
     directApply: true,
     url: applyUrl,
     identifier: { '@type': 'PropertyValue', name: 'Torren Technical', value: token },
@@ -70,7 +117,18 @@ function buildJsonLd(token: string, job: JobDetail): Record<string, unknown> {
       addressCountry: 'AU',
     },
   };
+
   if (empType) jsonLd.employmentType = empType;
+
+  const salary = parseSalary(job.salaryDisplay);
+  if (salary) jsonLd.baseSalary = salary;
+
+  if (job.requiredSkills?.length) jsonLd.skills = job.requiredSkills.join(', ');
+  if (job.licenceRequirements) jsonLd.qualifications = job.licenceRequirements;
+  if (job.roleServiceRequirements) jsonLd.responsibilities = job.roleServiceRequirements;
+  if (job.experienceRequirements) jsonLd.experienceRequirements = job.experienceRequirements;
+  if (job.benefits) jsonLd.jobBenefits = job.benefits;
+  if (job.workArrangement) jsonLd.workHours = job.workArrangement;
 
   return jsonLd;
 }
