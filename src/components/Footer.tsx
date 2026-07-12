@@ -95,7 +95,12 @@ export default function Footer() {
         </p>
 
         <div className="mt-6 flex flex-col items-start justify-between gap-4 font-mono text-[0.65rem] uppercase tracking-[0.18em] text-white/35 md:flex-row md:items-center">
-          <span>© 2026 Torren Technical · ABN 74 102 574 831</span>
+          <span className="flex items-center gap-4">
+            <span>© 2026 Torren Technical · ABN 74 102 574 831</span>
+            <a href="/privacy" className="transition-colors hover:text-gold">
+              Privacy Policy
+            </a>
+          </span>
           <span className="flex items-center gap-2">
             <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-gold" />
             Privacy Act 1988 · Spam Act 2003 compliant
